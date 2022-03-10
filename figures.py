@@ -10,8 +10,6 @@ from netCDF4 import Dataset
 import numpy as np
 import pandas as pd
 
-ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
-scen = 0
 
 def hydrology(ff, scen):
     ncf=Dataset(ff, mode='r')                                        # water netCDF, open in reading mode
@@ -258,7 +256,7 @@ def hydrology(ff, scen):
     ncf.close()
 
 
-hydrology(ff, scen)
+
 
 def stand(ff, scen):
     ncf=Dataset(ff, mode='r')                                        # water netCDF, open in reading mode
@@ -597,7 +595,6 @@ def stand(ff, scen):
     
     ncf.close()
 
-stand(ff, scen)
 
 def mass(ff, scen):
     
@@ -985,7 +982,7 @@ def mass(ff, scen):
 
     ncf.close()
    
-mass(ff, scen)
+
 
 
 def carbon(ff, scen):
@@ -1261,4 +1258,4 @@ def carbon(ff, scen):
     ax.set_facecolor(facecolor)
 
     ncf.close()
-carbon(ff, scen)
+

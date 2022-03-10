@@ -12,6 +12,7 @@ from susi_para import get_susi_para
 from susi_main import run_susi
 import susi_io
 
+
 #***************** local call for SUSI*****************************************************
 folderName=r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/' #'sensitivity/'
 susiPath = r'C:/Users/alauren/Documents/Susi_9/'
@@ -69,4 +70,11 @@ run_susi(forc, wpara, cpara, org_para, spara, outpara, photopara, start_yr, end_
     
           
              
-
+#%%
+from figures import *
+ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
+scen = 0
+hydrology(ff, scen)
+stand(ff, scen)
+mass(ff, scen)
+carbon(ff, scen)
