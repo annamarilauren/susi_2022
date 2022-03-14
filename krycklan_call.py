@@ -26,7 +26,7 @@ mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/
 
 
 start_date = datetime.datetime(2000,1,1)
-end_date=datetime.datetime(2005,12,31)
+end_date=datetime.datetime(2009,12,31)
 start_yr = start_date.year 
 end_yr = end_date.year
 yrs = (end_date - start_date).days/365.25

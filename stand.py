@@ -314,6 +314,7 @@ class Stand():
         self.nscens = nscens
         self.yrs = yrs
         self.photopara = photopara
+        
         ndominants = np.unique(canopylayers['dominant'])                       # number codes of different dominant layers, number refers to key in mottifiles dictionary, 0 implies no dominant layer
         nsubdominants = np.unique(canopylayers['subdominant'])                 # number codes of different subdominant layers, number refers to key in mottifiles dictionary, 0 implies no dominant layer
         nunder  = np.unique(canopylayers['under'])                             # number codes of different undermost layers, number refers to key in mottifiles dictionary, 0 implies no dominant layer  

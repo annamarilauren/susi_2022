@@ -89,12 +89,12 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
         'species': 'Pine', 'sfc':sfc, 'sfc_specification': 1,
         'hdom':hdomSim, 'vol':volSim, 'age':ageSim, 'smc': 'Peatland',
         'nLyrs':30, 'dzLyr': 0.05, 'L': sarkaSim, 'n':n, 
-        'ditch depth west': [-0.3],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
-        'ditch depth east': [-0.3],
-        'ditch depth 20y west': [-0.3],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'ditch depth 20y east': [-0.3],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'scenario name': ['Control'], #kasvunlisaykset
-        'initial h': -0.2, 'slope': 2.0, 
+        'ditch depth west': [-0.3, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
+        'ditch depth east': [-0.3, -0.9],
+        'ditch depth 20y west': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'ditch depth 20y east': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'scenario name': ['Control', 'DNM90'], #kasvunlisaykset
+        'initial h': -0.2, 'slope': 0.0, 
         'peat type':['A','A','A','A','A','A','A','A'], 
         'peat type bottom':['A'],'anisotropy':10.,
         'vonP': True,
@@ -122,10 +122,10 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
         'species': 'Spruce', 'sfc':sfc, 'sfc_specification': 1,
         'hdom':hdomSim, 'vol':volSim, 'age':ageSim, 'smc': 'Peatland',
         'nLyrs':30, 'dzLyr': 0.05, 'L': sarkaSim, 'n':n, 
-        'ditch depth west': [-0.2, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
-        'ditch depth east': [-0.2, -0.9],
-        'ditch depth 20y west': [-0.2, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'ditch depth 20y east': [-0.2, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'ditch depth west': [-0.3, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
+        'ditch depth east': [-0.3, -0.9],
+        'ditch depth 20y west': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'ditch depth 20y east': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
         'scenario name': ['Control', 'DNM90'], #kasvunlisaykset
         'initial h': -0.2, 'slope': 3.0, 
         'peat type':['A','A','A','A','A','A','A','A'], 

@@ -34,7 +34,7 @@ mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/
 wdata='parkano_weather.csv'
 
 start_date = datetime.datetime(2000,1,1)
-end_date=datetime.datetime(2005,12,31)
+end_date=datetime.datetime(2009,12,31)
 start_yr = start_date.year 
 end_yr = end_date.year
 yrs = (end_date - start_date).days/365.25
@@ -48,7 +48,7 @@ ageSim = {'dominant': 45.*np.ones(n),
 
 sfc =  np.ones(n, dtype=int)*3                                                                        # site fertility class
 
-ageSim['dominant'][int(n/2):] = 2.
+#ageSim['dominant'][int(n/2):] = 2.
 
 #ageSim[4:-4] = 2.
 site = 'develop_scens'
