@@ -1419,6 +1419,6 @@ def compare_1(ff, scens):
 
     ncf.close()
     
-ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
-scens = [0,1]
-compare_1(ff, scens)
+#ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
+#scens = [0,1]
+#compare_1(ff, scens)
