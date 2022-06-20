@@ -17,7 +17,7 @@ import os
 
 
 
-def run_immala(s, folderName, susiPath, wpath, mottipath, age, strip_width, sfc, startyr, endyr ):
+def run_immala(s, folderName, susiPath, wpath, wdata, mottipath, age, strip_width, sfc, startyr, endyr ):
 
     
 
@@ -31,7 +31,6 @@ def run_immala(s, folderName, susiPath, wpath, mottipath, age, strip_width, sfc,
     start_yr = start_date.year; end_yr = end_date.year
     yrs = (end_date - start_date).days/365.25
     length = (end_date - start_date).days +1
-    wdata  =  'Imatra_weather.csv'
     
     sarkaSim = strip_width
     n = int(sarkaSim / 2)
@@ -68,6 +67,7 @@ def run_immala(s, folderName, susiPath, wpath, mottipath, age, strip_width, sfc,
 
 # mottipath =  r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_inputs/'
 # ifiles = glob.glob(mottipath +"*.xlsx")
+# wdata  =  'Imatra_weather.csv'
 
 # sites=[]
 # for ifile in ifiles:    
@@ -90,7 +90,7 @@ def run_immala(s, folderName, susiPath, wpath, mottipath, age, strip_width, sfc,
                                     
 # for s, age, strip_width, sfc in zip(sites, ages, strip_widths, sfcs):
 #     print (s, mottipath, age, strip_width, sfc)
-#     run_immala(s, folderName, susiPath, wpath, mottipath, age, strip_width, sfc, startyr, endyr )
+#     run_immala(s, folderName, susiPath, wpath, wdata, mottipath, age, strip_width, sfc, startyr, endyr )
 #     import sys; sys.exit()
 
 # #%%
