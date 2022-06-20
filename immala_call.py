@@ -67,7 +67,7 @@ def run_immala(s, folderName, susiPath, wpath, wdata, mottipath, age, strip_widt
 
 # mottipath =  r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_inputs/'
 # ifiles = glob.glob(mottipath +"*.xlsx")
-# wdata  =  'Imatra_weather.csv'
+# wdata  = c
 
 # sites=[]
 # for ifile in ifiles:    
