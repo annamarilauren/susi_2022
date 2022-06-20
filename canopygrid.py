@@ -91,7 +91,7 @@ class CanopyGrid():
                             'fact': []}
 
     def update_amax(self, cpara, nutstat):
-        self.physpara['amax'] = cpara['amax'] + nutstat - 1
+        self.physpara['amax'] = cpara['amax']*1.05 + (nutstat - 1) 
         
     def run_timestep(self, doy, dt, Ta, Prec, Rg, Par, VPD,  hc, LAIconif, U=2.0, CO2=380.0, Rew=1.0, beta=1.0, P=101300.0):
         """

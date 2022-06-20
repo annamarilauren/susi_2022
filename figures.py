@@ -10,6 +10,66 @@ from netCDF4 import Dataset
 import numpy as np
 import pandas as pd
 
+def create_profile_line(ax, wt, wtmin, sd, cols, ylabel, label, fs, facecolor, colorin, hidex=False, hidey=False, elevation=None):
+    if elevation is not None: ax.plot(elevation, color='brown', label = 'soil surface')
+    ax.plot(wt, color=colorin, label = label)
+    ax.fill_between(range(cols), wt+sd*2, wt-sd, color=colorin, alpha=0.075)
+    if elevation is not None: 
+        drainnorm = elevation - 0.35
+    else:
+        drainnorm = -0.35
+    ax.hlines(y= drainnorm, xmin=0, xmax = cols, color='red',linestyles='--')
+    ax.get_xaxis().set_visible(False) 
+    ax.tick_params(axis='y', labelsize=fs)
+    if elevation is None: ax.set_ylim([wtmin,0])
+    ax.set_ylabel(ylabel, fontsize=fs)
+    ax.legend()
+    ax.grid(visible=False)
+    ax.set_facecolor(facecolor)
+    if hidex: 
+        ax.get_xaxis().set_visible(False) 
+    else:
+        ax.tick_params(axis='x', labelsize=fs)
+    if hidey: 
+        ax.get_yaxis().set_visible(False)
+    else:
+        ax.get_yaxis().set_visible(True)
+        
+
+    return ax
+
+def create_profile_boxplot(ax, datain, cols, colorin, title, label, fs, facecolor, zero=False, hidex=True, hidey=False):
+    
+    df = pd.DataFrame(data=datain, columns=list(range(cols)))
+    df.boxplot(ax = ax,
+                  color=dict(boxes=colorin, whiskers=colorin, medians=colorin, caps=colorin),
+                  boxprops=dict(linestyle='-', linewidth=1.5, color=colorin, alpha=0.6),
+                  flierprops=dict(linestyle='-', linewidth=1.5),
+                  medianprops=dict(linestyle='-', linewidth=1.5),
+                  whiskerprops=dict(linestyle='-', linewidth=1.5, color=colorin, alpha=0.6),
+                  capprops=dict(linestyle='-', linewidth=1.5, color=colorin, alpha=0.6),
+                  showfliers=False, grid=False, rot=0)
+
+    if zero: ax.hlines(y= 0, xmin=0, xmax = cols, color='red',linestyles='--')
+    meanval = df.mean(axis=0)
+    meanval = np.round(meanval.mean(),2)
+    title = title + ': mean '+ str(meanval)
+    ax.set_title(title, fontsize = fs)
+    ax.set_ylabel(label, fontsize=fs)
+    ax.set_facecolor(facecolor)
+    #ax.get_xaxis().set_visible(False) 
+    if hidex: 
+        ax.get_xaxis().set_visible(False) 
+    else:
+        ax.tick_params(axis='x', labelsize=fs)
+    if hidey: 
+        ax.get_yaxis().set_visible(False)
+    else:
+        ax.get_yaxis().set_visible(True)
+        ax.set_ylabel(label, fontsize=fs)
+        ax.tick_params(axis='y', labelsize=fs)
+
+    return ax
 
 def hydrology(ff, scen):
     ncf=Dataset(ff, mode='r')                                        # water netCDF, open in reading mode
@@ -29,40 +89,15 @@ def hydrology(ff, scen):
     sdls = np.std(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
     wtmin = min(wtls) -0.2
     
-    axwt0 = fig.add_subplot(gs[10:, :4])
-    axwt0.plot(wt, color='blue', label = 'annual')
-    axwt0.fill_between(range(cols), wt+sd*2, wt-sd*2, color='blue', alpha=0.075)
-    axwt0.hlines(y= -0.35, xmin=0, xmax =cols, color='red',linestyles='--')
-    axwt0.get_xaxis().set_visible(False) 
-    axwt0.tick_params(axis='y', labelsize=fs)
-    axwt0.set_ylim([wtmin,0])
-    axwt0.set_ylabel('WT m', fontsize=fs)
-    axwt0.legend()
-    axwt0.grid(visible=False)
-    axwt0.set_facecolor(facecolor)
-    
-    axwt1 = fig.add_subplot(gs[10:, 4:8])
-    axwt1.plot(wtgs, color='green', label = 'growing season')
-    axwt1.fill_between(range(cols), wtgs+sdgs*2, wtgs-sdgs*2, color='green', alpha=0.075)
-    axwt1.hlines(y= -0.35, xmin=0, xmax = cols, color='red',linestyles='--')
-    axwt1.get_xaxis().set_visible(False) 
-    axwt1.get_yaxis().set_visible(False) 
-    axwt1.set_ylim([wtmin,0])
-    axwt1.legend()
-    axwt1.grid(visible=False)
-    axwt1.set_facecolor(facecolor)
-    
-    axwt2 = fig.add_subplot(gs[10:, 8:])
-    axwt2.plot(wtls, color='orange', label = 'late summer')
-    axwt2.fill_between(range(cols), wtls+sdls*2, wtls-sdls*2, color='orange', alpha=0.075)
-    axwt2.hlines(y= -0.35, xmin=0, xmax = cols, color='red',linestyles='--')
-    axwt2.get_xaxis().set_visible(False) 
-    axwt2.get_yaxis().set_visible(False) 
-    axwt2.set_ylim([wtmin,0])
-    axwt2.legend()
-    axwt2.grid(visible=False)
-    axwt2.set_facecolor(facecolor)
-    
+    ax = fig.add_subplot(gs[10:, :4])
+    ax = create_profile_line(ax, wt, wtmin, sd, cols, 'WT m', 'annual', fs, facecolor, 'blue', hidex=True, hidey=False)
+
+    ax = fig.add_subplot(gs[10:, 4:8])
+    ax = create_profile_line(ax, wtgs, wtmin, sdgs, cols, None, 'annual', fs, facecolor, 'green', hidex=True, hidey=True)
+
+    ax = fig.add_subplot(gs[10:, 8:])
+    ax = create_profile_line(ax, wtls, wtmin, sdls, cols, None, 'annual', fs, facecolor, 'orange', hidex=True, hidey=True)
+
     #----------Water tables time series
     
     wt = np.mean(ncf['strip']['dwt'][scen,:, :], axis = 1)
@@ -96,7 +131,6 @@ def hydrology(ff, scen):
     axruno.legend(loc='upper left')
     axruno.set_facecolor(facecolor)
     axruno.get_xaxis().set_visible(False) 
-
 
     runoff = np.cumsum(ncf['strip']['roffwest'][scen,:])        
     axruno = fig.add_subplot(gs[6, :]) #axwtts.twinx()
@@ -138,123 +172,48 @@ def hydrology(ff, scen):
     #------deltas-----------------
     deltas = ncf['strip']['deltas'][scen,1:, :]*1000.
     dfdeltas = pd.DataFrame(data=deltas, columns=list(range(cols)))
-    axdeltas = fig.add_subplot(gs[2:4, :4])
-    dfdeltas.boxplot(ax = axdeltas,
-                 color=dict(boxes='blue', whiskers='blue', medians='blue', caps='blue'),
-                 boxprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                 flierprops=dict(linestyle='-', linewidth=1.5),
-                 medianprops=dict(linestyle='-', linewidth=1.5),
-                 whiskerprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                 capprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                 showfliers=False, grid=False, rot=0)
-    
-    axdeltas.set_title('Through soil surface')
-    axdeltas.set_ylabel('Water flux mm $yr^{-1}$', fontsize=fs)
-    
-    axdeltas.get_xaxis().set_visible(False)
-    axdeltas.tick_params(axis='y', labelsize=fs)
-    axdeltas.set_facecolor(facecolor)
-    
+ 
+    ax = fig.add_subplot(gs[2:4, :4])
+    ax = create_profile_boxplot(ax, dfdeltas, cols, 'blue', 'Through soil surface', 'Water flux mm $yr^{-1}$', fs, facecolor, zero=False)
+
     #------ETs-----------------
     ET = ncf['cpy']['ET_yr'][scen,1:, :]*1000.
     dfET = pd.DataFrame(data=ET, columns=list(range(cols)))
-    axET = fig.add_subplot(gs[2:4, 4:8])
-    dfET.boxplot(ax = axET,
-                 color=dict(boxes='green', whiskers='green', medians='green', caps='green'),
-                 boxprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                 flierprops=dict(linestyle='-', linewidth=1.5),
-                 medianprops=dict(linestyle='-', linewidth=1.5),
-                 whiskerprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                 capprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                 showfliers=False, grid=False, rot=0)
     
-    axET.set_title('ET')
-    
-    axET.get_xaxis().set_visible(False)
-    axET.tick_params(axis='y', labelsize=fs)
-    axET.set_facecolor(facecolor)
+    ax = fig.add_subplot(gs[2:4, 4:8])
+    ax = create_profile_boxplot(ax, dfET, cols, 'green', 'ET', '', fs, facecolor, zero=False, hidex=True)
     
     
     #------transpi-----------------
     transpi = ncf['cpy']['transpi_yr'][scen,1:, :]*1000.
     dftranspi = pd.DataFrame(data=transpi, columns=list(range(cols)))
-    axtranspi = fig.add_subplot(gs[2:4, 8:])
-    dftranspi.boxplot(ax = axtranspi,
-                 color=dict(boxes='orange', whiskers='orange', medians='orange', caps='orange'),
-                 boxprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                 flierprops=dict(linestyle='-', linewidth=1.5),
-                 medianprops=dict(linestyle='-', linewidth=1.5),
-                 whiskerprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                 capprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                 showfliers=False, grid=False, rot=0)
-    
-    axtranspi.set_title('Transpiration')
-    
-    axtranspi.get_xaxis().set_visible(False)
-    axtranspi.tick_params(axis='y', labelsize=fs)
-    axtranspi.set_facecolor(facecolor)
+    ax = fig.add_subplot(gs[2:4, 8:])
+    ax = create_profile_boxplot(ax, dftranspi, cols, 'orange', 'Transpiration', '', fs, facecolor, zero=False, hidex=True)
     
     
     #------efloor-----------------
     efloor = ncf['cpy']['efloor_yr'][scen,1:, :]*1000.
     dfefloor = pd.DataFrame(data=efloor, columns=list(range(cols)))
-    axefloor = fig.add_subplot(gs[:2, :4])
-    dfefloor.boxplot(ax = axefloor,
-                 color=dict(boxes='blue', whiskers='blue', medians='blue', caps='blue'),
-                 boxprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                 flierprops=dict(linestyle='-', linewidth=1.5),
-                 medianprops=dict(linestyle='-', linewidth=1.5),
-                 whiskerprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                 capprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                 showfliers=False, grid=False, rot=0)
     
-    axefloor.set_title('Soil evaporation')
-    axefloor.set_ylabel('Water flux mm $yr^{-1}$', fontsize=fs)
-    
-    axefloor.get_xaxis().set_visible(False)
-    axefloor.tick_params(axis='y', labelsize=fs)
-    axefloor.set_facecolor(facecolor)
+    ax = fig.add_subplot(gs[:2, :4])    
+    ax = create_profile_boxplot(ax, dfefloor, cols, 'blue', 'Soil evaporation', 'Water flux mm $yr^{-1}$', fs, facecolor, zero=False, hidex=True)
     
     #------SWE max-----------------
     swe = ncf['cpy']['SWEmax'][scen,1:, :]
     dfswe = pd.DataFrame(data=swe, columns=list(range(cols)))
-    axswe= fig.add_subplot(gs[:2, 4:8])
-    dfswe.boxplot(ax = axswe,
-                 color=dict(boxes='green', whiskers='green', medians='green', caps='green'),
-                 boxprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                 flierprops=dict(linestyle='-', linewidth=1.5),
-                 medianprops=dict(linestyle='-', linewidth=1.5),
-                 whiskerprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                 capprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                 showfliers=False, grid=False, rot=0)
-    
-    axswe.set_title('Max snow water equivalent')
-    
-    axswe.get_xaxis().set_visible(False)
-    axswe.tick_params(axis='y', labelsize=fs)
-    axswe.set_facecolor(facecolor)
+
+    ax= fig.add_subplot(gs[:2, 4:8])
+    ax = create_profile_boxplot(ax, dfswe, cols, 'green', 'Max snow water equivalent', '', fs, facecolor, zero=False, hidex=True)
     
     #------Interc max-----------------
     interc = ncf['cpy']['interc_yr'][scen,1:, :]*1000.
     dfinterc = pd.DataFrame(data=interc, columns=list(range(cols)))
-    axinterc= fig.add_subplot(gs[:2, 8:])
-    dfinterc.boxplot(ax = axinterc,
-                 color=dict(boxes='orange', whiskers='orange', medians='orange', caps='orange'),
-                 boxprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                 flierprops=dict(linestyle='-', linewidth=1.5),
-                 medianprops=dict(linestyle='-', linewidth=1.5),
-                 whiskerprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                 capprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                 showfliers=False, grid=False, rot=0)
+   
+    ax= fig.add_subplot(gs[:2, 8:])
+    ax = create_profile_boxplot(ax, dfinterc, cols, 'orange', 'Mean interception storage', '', fs, facecolor, zero=False, hidex=True)
     
-    axinterc.set_title('Mean interception storage')
-    
-    axinterc.get_xaxis().set_visible(False)
-    axinterc.tick_params(axis='y', labelsize=fs)
-    axinterc.set_facecolor(facecolor)
-    
-    ncf.close()
 
+    ncf.close()
 
 
 
@@ -991,7 +950,8 @@ def carbon(ff, scen):
     facecolor = '#f2f5eb'
     fs = 15
     fig = plt.figure(num='carbon', figsize=(15,18))   #width, height
-    gs = gridspec.GridSpec(ncols=12, nrows=12, figure=fig, wspace=0.25, hspace=0.25)
+    fig.suptitle('Carbon balance components', fontsize = fs+2)
+    gs = gridspec.GridSpec(ncols=12, nrows=14, figure=fig, wspace=0.5, hspace=0.5)
     mass_to_c = 0.5
     
     #-------soil C balance kg/ha/yr---------------------------
@@ -1012,289 +972,196 @@ def carbon(ff, scen):
     sdls = np.std(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
     wtmin = min(wtls) -0.2
     
-    df = pd.DataFrame(data=soil, columns=list(range(cols)))
-    ax = fig.add_subplot(gs[2:4, :6])
-    df.boxplot(ax = ax,
-                  color=dict(boxes='blue', whiskers='blue', medians='blue', caps='blue'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='blue', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
-    
-    ax.set_title('Soil carbon balance')
-    ax.set_ylabel('$kg m^{-2} yr^{-1}$', fontsize=fs)
-    
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
-    #-------------------------
-    
-    #-------Site carbon balance kg/m2/yr---------------------------
-    gv = ncf['groundvegetation']['gv_tot'][scen,:, :]/10000. * mass_to_c
-    grgv = np.diff(gv, axis = 0)
-    stand = ncf['stand']['biomass'][scen,:, :]/10000.* mass_to_c
-    gr = np.diff(stand, axis = 0)
+    #-------water table as a reference-----------------------------
+    ax = fig.add_subplot(gs[12:, :6])
+    ax = create_profile_line(ax, wt, wtmin, sd, cols, 'WT m', 'annual', fs, facecolor, 'blue', hidex=True, hidey=False)
 
+    #----------- water table in H------------------------------   
+    elevation = np.array(ncf['strip']['elevation'])
+    wtls = np.mean(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
+    sd = np.std(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
+    h = elevation + wtls
+    
+    ax = fig.add_subplot(gs[12:, 6:])
+    ax = create_profile_line(ax, h, wtmin, sd, cols, 'WT m', 'annual', fs, facecolor, \
+                             'blue', hidex=True, hidey=False, elevation = elevation)
+    
+    
+    #-------------LMW to Ditch----------------------------
+    lmwtoditch = ncf['balance']['C']['LMWdoc_to_water'][scen,:, :] *-1
+    ax = fig.add_subplot(gs[10:12, :6])
+    df = pd.DataFrame(data=lmwtoditch, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'brown', 'LMW to ditch', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
 
-    site = gr + grgv + out[1:, :] + litter[1:,:]
-    df = pd.DataFrame(data=site, columns=list(range(cols)))
-    ax = fig.add_subplot(gs[:2, :6])
-    df.boxplot(ax = ax,
-                  color=dict(boxes='green', whiskers='green', medians='green', caps='green'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='green', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
-    
-    ax.set_title('Site carbon balance')
-    ax.set_ylabel('$kg m^{-2} yr^{-1}$', fontsize=fs)
-    
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
+    #-------------HMW to Ditch----------------------------
+    hmwtoditch = ncf['balance']['C']['HMW_to_water'][scen,:, :]*-1
+    ax = fig.add_subplot(gs[10:12, 6:])
+    df = pd.DataFrame(data=hmwtoditch, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'brown', 'HMW to ditch', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
 
-    #-------Soil carbon emissions kg/m2/yr---------------------------
-    cemiss = ncf['esom']['Mass']['c_to_atm'][scen,:, :]/10000.*-1 
-    df = pd.DataFrame(data=cemiss, columns=list(range(cols)))
-    ax = fig.add_subplot(gs[4:6, :6])
-    df.boxplot(ax = ax,
-                  color=dict(boxes='orange', whiskers='orange', medians='orange', caps='orange'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
-    
-    ax.set_title('Soil carbon emissions')
-    ax.set_ylabel('$kg m^{-2} yr^{-1}$', fontsize=fs)
-    
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
-  
-    #-------Soil methane emissions kg/m2/yr---------------------------    
-    
-    ch4 = ncf['methane']['ch4'][scen,:, :]/10000.
-        
-    
-    df = pd.DataFrame(data=ch4, columns=list(range(cols)))
-    ax = fig.add_subplot(gs[6:8, :6])
-    df.boxplot(ax = ax,
-                  color=dict(boxes='magenta', whiskers='magenta', medians='magenta', caps='magenta'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='magenta', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='magenta', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='magenta', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
-    
-    ax.set_title('Methane')
-    ax.set_ylabel('$kg m^{-2} yr^{-1}$', fontsize=fs)
-    ax.hlines(y= 0, xmin=0, xmax = cols, color='red',linestyles='--')
-    
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
-  
-    
-    #-------peat DOC relase kg/m2/yr---------------------------
-    doc = ncf['esom']['Mass']['doc'][scen,:, :]/10000. *-1
-    df = pd.DataFrame(data=doc, columns=list(range(cols)))
+    #-----------LMW to atmosphere--------------------
+    lmwtoatm = ncf['balance']['C']['LMWdoc_to_atm'][scen,:, :]*-1
     ax = fig.add_subplot(gs[8:10, :6])
-    df.boxplot(ax = ax,
-                  color=dict(boxes='brown', whiskers='brown', medians='brown', caps='brown'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='brown', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='brown', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='brown', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
+    df = pd.DataFrame(data=lmwtoatm, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'orange', 'LMW to atmosphere', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
     
-    ax.set_title('DOC release')
-    ax.set_ylabel('$kg m^{-2} yr^{-1}$', fontsize=fs)
+    #-----------HMW to atmosphere--------------------
+    hmwtoatm = ncf['balance']['C']['HMW_to_atm'][scen,:, :]*-1
+    ax = fig.add_subplot(gs[8:10, 6:])
+    df = pd.DataFrame(data=hmwtoatm, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'orange', 'HMW to atmosphere', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
     
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
+    #-----------CO2C to atmosphere--------------------
+    co2 = ncf['balance']['C']['co2c_release'][scen,:, :]*-1
+    ax = fig.add_subplot(gs[6:8, :6])
+    df = pd.DataFrame(data=co2, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'grey', '$CO_2C$ to atmosphere', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+    
+    #-----------CH4C to atmosphere--------------------
+    co2 = ncf['balance']['C']['ch4c_release'][scen,:, :]*-1
+    ax = fig.add_subplot(gs[6:8, 6:])
+    df = pd.DataFrame(data=co2, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'grey', '$CH_4C$ to atmosphere', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
 
+    #-----------stand litter in--------------------
+    standl = ncf['balance']['C']['stand_litter_in'][scen,:, :]
+    ax = fig.add_subplot(gs[4:6, :6])
+    df = pd.DataFrame(data=standl, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'green', 'Stand litter', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+ 
+    #-----------ground vegetation litter in--------------------
+    gvl = ncf['balance']['C']['gv_litter_in'][scen,:, :]
+    ax = fig.add_subplot(gs[4:6, 6:])
+    df = pd.DataFrame(data=gvl, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'green', 'Groundvegetation litter', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+    
+    #-----------soil balance c--------------------
+    soilc = ncf['balance']['C']['soil_c_balance_c'][scen,:, :]
+    ax = fig.add_subplot(gs[2:4, :6])
+    df = pd.DataFrame(data=soilc, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'black', 'Soil C balance in C', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+
+    #-----------soil balance co2 equivalents--------------------
+    soilco2 = ncf['balance']['C']['soil_c_balance_co2eq'][scen,:, :]
+    ax = fig.add_subplot(gs[2:4, 6:])
+    df = pd.DataFrame(data=soilco2, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'black', 'Soil C balance in $CO_2$ eq', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+
+    #-----------stand balance c--------------------
+    standc = ncf['balance']['C']['stand_c_balance_c'][scen,:, :]
+    ax = fig.add_subplot(gs[:2, :6])
+    df = pd.DataFrame(data=standc, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'green', 'Stand C balance in C', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+
+    #-----------stand balance co2 equivalents--------------------
+    standco2 = ncf['balance']['C']['stand_c_balance_co2eq'][scen,:, :]
+    ax = fig.add_subplot(gs[:2, 6:])
+    df = pd.DataFrame(data=standco2, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'green', 'Stand C balance in $CO_2$ eq', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+    
+    ncf.close()
+    
+def nutrient_balance(ff, substance, scen):
+
+    ncf=Dataset(ff, mode='r')                                        # water netCDF, open in reading mode
+    facecolor = '#f2f5eb'
+    fs = 15
+    fig = plt.figure(num=substance, figsize=(15,18))   #width, height
+    tx = substance + ' balance components'
+    fig.suptitle(tx, fontsize = fs+2)
+    gs = gridspec.GridSpec(ncols=12, nrows=12, figure=fig, wspace=0.5, hspace=0.5)
+
+
+    wt = np.mean(ncf['strip']['dwtyr'][scen,:, :], axis = 0)
+    cols = np.shape(wt)[0]
+    sd = np.std(ncf['strip']['dwtyr'][scen,:, :], axis = 0)
+    wtls = np.mean(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
+    sdls = np.std(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
+    wtmin = min(wtls) -0.2
     
     #-------water table as a reference-----------------------------
     ax = fig.add_subplot(gs[10:, :6])
-    ax.plot(wt, color='blue', label = 'late summer')
-    ax.fill_between(range(cols), wt+sd*2, wt-sd, color='blue', alpha=0.075)
-    ax.hlines(y= -0.35, xmin=0, xmax = cols, color='red',linestyles='--')
-    ax.get_xaxis().set_visible(False) 
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_ylim([wtmin,0])
-    ax.set_ylabel('WT m', fontsize=fs)
-    ax.legend()
-    ax.grid(visible=False)
-    ax.set_facecolor(facecolor)
-    
+    ax = create_profile_line(ax, wt, wtmin, sd, cols, 'WT m', 'annual', fs, facecolor, 'blue', hidex=True, hidey=False)
+
     #----------- water table in H------------------------------   
-    wt = np.mean(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
-    sd = np.std(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
-    ax = fig.add_subplot(gs[10:, 6:])
-
     elevation = np.array(ncf['strip']['elevation'])
-    ax.plot(elevation, color='brown', label = 'soil surface')
-    ax.plot(elevation + wt, color='blue', label = 'late summer')
-    ax.fill_between(range(cols), elevation + wt+sd*2, elevation + wt-sd, color='blue', alpha=0.075)
-    ax.plot(range(cols), elevation-0.35, color='red')
-    ax.get_xaxis().set_visible(False) 
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_ylabel('WT m', fontsize=fs)
-    ax.legend()
-    ax.grid(visible=False)
-    ax.set_facecolor(facecolor)
-    
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
+    wtls = np.mean(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
+    sd = np.std(ncf['strip']['dwtyr_latesummer'][scen,:, :], axis = 0)
+    h = elevation + wtls
  
+    ax = fig.add_subplot(gs[10:, 6:])
+    ax = create_profile_line(ax, h, wtmin, sd, cols, 'WT m', 'annual', fs, facecolor, \
+                             'blue', hidex=True, hidey=False, elevation = elevation)
+
+    #-------------to Ditch----------------------------
+    towater = ncf['balance'][substance]['to_water'][scen,:, :] 
+    ax = fig.add_subplot(gs[8:10, :6])
+    df = pd.DataFrame(data=towater, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'brown', substance + ' to water', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
     
-    #-------residence time days-----------------------------
-    timetoditch = ncf['strip']['residencetime'][scen,:, :]
+    #-------------below root layer----------------------------
+    brl = ncf['balance'][substance]['decomposition_below_root_lyr'][scen,:, :] 
     ax = fig.add_subplot(gs[8:10, 6:])
-    df = pd.DataFrame(data=timetoditch, columns=list(range(cols)))
-    df.boxplot(ax = ax,
-                  color=dict(boxes='brown', whiskers='brown', medians='brown', caps='brown'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='brown', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='brown', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='brown', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
-    
-    ax.set_title('Residence time')
-    ax.set_ylabel('days', fontsize=fs)
-    
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
- 
+    df = pd.DataFrame(data=brl, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'brown', substance + ' below root layer', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
 
-    hmw = ncf['esom']['Mass']['doc'][scen,:, :] - ncf['esom']['Mass']['lmwdoc'][scen,:, :]
+    #-------------Release in decomposition----------------------------
+    de = ncf['balance'][substance]['decomposition_tot'][scen,:, :] 
+    ax = fig.add_subplot(gs[6:8, :6])
+    df = pd.DataFrame(data=de, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'black', substance + ' release in decomposition', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+
+    #-------------Release in decomposition----------------------------
+    dert = ncf['balance'][substance]['decomposition_root_lyr'][scen,:, :] 
     ax = fig.add_subplot(gs[6:8, 6:])
-    df = pd.DataFrame(data=hmw, columns=list(range(cols)))
-    df.boxplot(ax = ax,
-                  color=dict(boxes='black', whiskers='black', medians='black', caps='black'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='black', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='black', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='black', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
-    
-    ax.set_title('HMW DOC')
-    ax.set_ylabel('kg $ha^{-1} yr^{-1}$', fontsize=fs)
-    
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
+    df = pd.DataFrame(data=dert, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'black', substance + ' release in root layer', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
 
-    hmwtoditch = ncf['export']['hmwtoditch'][scen,:, :]
-    yrs, cols = np.shape(hmw)
-    
+    #-------------- Total supply ----------------------------------------    
+    supply = ncf['balance'][substance]['decomposition_root_lyr'][scen,:, :] \
+        + ncf['balance'][substance]['deposition'][scen,:, :]  \
+        + ncf['balance'][substance]['fertilization_release'][scen,:, :] 
+
+    ax = fig.add_subplot(gs[4:6, :6])
+    df = pd.DataFrame(data=supply, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'blue', substance + ' supply', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+
+    #-------------Release in decomposition----------------------------
+    fert = ncf['balance'][substance]['fertilization_release'][scen,:, :] 
     ax = fig.add_subplot(gs[4:6, 6:])
-    df = pd.DataFrame(data=hmwtoditch, columns=list(range(cols)))
-    df.boxplot(ax = ax,
-                  color=dict(boxes='red', whiskers='red', medians='red', caps='red'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='red', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='red', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='red', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
+    df = pd.DataFrame(data=fert, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'black', substance + ' release in fertilizers', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
     
-    ax.set_title('HMW to ditch')
-    ax.set_ylabel('kg $ha^{-1} yr^{-1}$', fontsize=fs)
-    ax.set_facecolor(facecolor)
-    ax.get_xaxis().set_visible(False)
-    
-    
-    lmw = ncf['esom']['Mass']['lmwdoc'][scen,:, :]
+    #-------------Stand uptake----------------------------
+    dem = ncf['balance'][substance]['stand_demand'][scen,:, :] 
+    ax = fig.add_subplot(gs[2:4, :6])
+    df = pd.DataFrame(data=dem, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'green', substance + ' stand uptake', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+
+    #-------------ground vegetation uptake----------------------------
+    dem = ncf['balance'][substance]['gv_demand'][scen,:, :] 
     ax = fig.add_subplot(gs[2:4, 6:])
-    df = pd.DataFrame(data=lmw, columns=list(range(cols)))
-    df.boxplot(ax = ax,
-                  color=dict(boxes='cyan', whiskers='cyan', medians='cyan', caps='cyan'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='cyan', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='cyan', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='cyan', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
-    
-    ax.set_title('LMW DOC')
-    ax.set_ylabel('kg $ha^{-1} yr^{-1}$', fontsize=fs)
-    
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
+    df = pd.DataFrame(data=dem, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'green', substance + ' groundvegetation uptake', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
 
-    lmwtoditch = ncf['export']['lmwtoditch'][scen,:, :]
-
+    #-------------Stand nutrient balance----------------------------
+    dem = ncf['balance'][substance]['balance_root_lyr'][scen,:, :] 
+    ax = fig.add_subplot(gs[:2, :6])
+    df = pd.DataFrame(data=dem, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'green', substance + ' balance', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
+    
+    #-------------Stand volume growth----------------------------
+    vg = ncf['stand']['volumegrowth'][scen,:, :] 
     ax = fig.add_subplot(gs[:2, 6:])
-    df = pd.DataFrame(data=lmwtoditch, columns=list(range(cols)))
-    df.boxplot(ax = ax,
-                  color=dict(boxes='orange', whiskers='orange', medians='orange', caps='orange'),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color='orange', alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
+    df = pd.DataFrame(data=vg, columns=list(range(cols)))
+    ax = create_profile_boxplot(ax, df, cols, 'green', 'volume growth', '$m^{3} ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
     
-    ax.set_title('LMW to ditch')
-    ax.set_ylabel('kg $ha^{-1} yr^{-1}$', fontsize=fs)
     
-    ax.get_xaxis().set_visible(False)
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_facecolor(facecolor)
-
     ncf.close()
-
 #***************************************************************
 #***************************************************************
 #              COMPARISON FIGURES
 #***************************************************************
-def create_profile_line(ax, wt, wtmin, sd, cols, ylabel, label, fs, facecolor, colorin):
-    ax.plot(wt, color=colorin, label = label)
-    ax.fill_between(range(cols), wt+sd*2, wt-sd, color=colorin, alpha=0.075)
-    ax.hlines(y= -0.35, xmin=0, xmax = cols, color='red',linestyles='--')
-    ax.get_xaxis().set_visible(False) 
-    ax.tick_params(axis='y', labelsize=fs)
-    ax.set_ylim([wtmin,0])
-    ax.set_ylabel(ylabel, fontsize=fs)
-    ax.legend()
-    ax.grid(visible=False)
-    ax.set_facecolor(facecolor)
-    return ax
-
-def create_profile_boxplot(ax, datain, cols, colorin, title, label, fs, facecolor, zero=False):
-    
-    df = pd.DataFrame(data=datain, columns=list(range(cols)))
-    df.boxplot(ax = ax,
-                  color=dict(boxes=colorin, whiskers=colorin, medians=colorin, caps=colorin),
-                  boxprops=dict(linestyle='-', linewidth=1.5, color=colorin, alpha=0.6),
-                  flierprops=dict(linestyle='-', linewidth=1.5),
-                  medianprops=dict(linestyle='-', linewidth=1.5),
-                  whiskerprops=dict(linestyle='-', linewidth=1.5, color=colorin, alpha=0.6),
-                  capprops=dict(linestyle='-', linewidth=1.5, color=colorin, alpha=0.6),
-                  showfliers=False, grid=False, rot=0)
-
-    if zero: ax.hlines(y= 0, xmin=0, xmax = cols, color='red',linestyles='--')
-    ax.set_title(title)
-    #ax.set_ylabel(label, fontsize=fs)
-    ax.set_facecolor(facecolor)
-    ax.get_xaxis().set_visible(False) 
-
-    return ax
 
 def compare_1(ff, scens):
     
@@ -1418,7 +1285,164 @@ def compare_1(ff, scens):
    
 
     ncf.close()
+
+
+def compare_scens(ff):
+
+    def draw_comparison(ax, x, y, sd, label, ylabel, title, color, facecolor, fs, xlabel=False):
+        ax.plot(x,y, 'o-', color=color, label=label)
+        ax.set_ylabel(ylabel, fontsize=fs)
+        if xlabel: ax.set_xlabel('Ditch depth, m', fontsize = fs)
+        ax.fill_between(x, y+sd, y-sd, color = color, alpha = 0.2)
+        ax.set_facecolor(facecolor)
+        ax.set_title(title, fontsize = fs)
+        #ax.legend()
+        return ax
     
+    ncf=Dataset(ff, mode='r')                                        # water netCDF, open in reading mode
+    facecolor = '#f2f5eb'
+    fs = 15
+    fig = plt.figure(num='comparison', figsize=(12,6))   #width, height
+    gs = gridspec.GridSpec(ncols=3, nrows=2, figure=fig, wspace=0.35, hspace=0.35)
+
+
+    ditch_depths = ncf['scen']['ditch_depths'][:]
+    
+    grresponse = ncf['stand']['volumegrowth'][:,:, :] - ncf['stand']['volumegrowth'][0,:, :] 
+    grr = np.mean(grresponse, axis=(1,2))
+    grrsd = np.std(grresponse, axis=(1,2))
+    ax = fig.add_subplot(gs[0,0])
+    ax = draw_comparison(ax, ditch_depths, grr, grrsd, 'm3 yr-1', '$m^3 ha^{-3} yr^{-3}$', 'Growth response', 'green', facecolor, fs)
+    
+    wt = np.mean(ncf['strip']['dwtyr_latesummer'][:,:, :], axis = (1,2))   # mean annual wr dim: nscens
+    sd = np.std(ncf['strip']['dwtyr_latesummer'][:,:, :], axis = (1,2))     #
+    ax = fig.add_subplot(gs[0,1])
+    ax = draw_comparison(ax, ditch_depths, wt, sd, 'water table', 'WT, m', 'Water table', 'blue', facecolor, fs)
+    
+    standco2bal = np.mean(ncf['balance']['C']['stand_c_balance_co2eq'][:, :, :], axis=(1,2))
+    standco2balsd = np.std(ncf['balance']['C']['stand_c_balance_co2eq'][:, :, :], axis=(1,2))
+    ax = fig.add_subplot(gs[0,2])
+    ax = draw_comparison(ax, ditch_depths, standco2bal, standco2balsd, '', '$kg ha^{-3} yr^{-3}$', 'Stand $CO_2$ balance', 'grey', facecolor, fs)
+    
+    
+    soilco2bal = np.mean(ncf['balance']['C']['soil_c_balance_co2eq'][:, :, :], axis=(1,2))
+    soilco2balsd = np.std(ncf['balance']['C']['soil_c_balance_co2eq'][:, :, :], axis=(1,2))
+    ax = fig.add_subplot(gs[1,0])
+    ax = draw_comparison(ax, ditch_depths, soilco2bal, soilco2balsd, '', 
+                         '$kg ha^{-3} yr^{-3}$', 'Soil $CO_2$ balance', 'grey', 
+                         facecolor, fs, xlabel=True)
+    
+    
+    ntowater = np.mean(ncf['balance']['N']['to_water'][:,:,:], axis = (1,2))
+    ntowater = np.maximum(ntowater, 0.0)
+    ntowatersd = np.std(ncf['balance']['N']['to_water'][:,:,:], axis = (1,2))
+    ax = fig.add_subplot(gs[1,1])
+    ax = draw_comparison(ax, ditch_depths, ntowater, ntowatersd, '',
+                         '$kg ha^{-3} yr^{-3}$', 'N to water', 'red', 
+                         facecolor, fs, xlabel= True)
+    
+    ptowater = np.mean(ncf['balance']['P']['to_water'][:,:,:], axis = (1,2))
+    ptowater = np.maximum(ptowater, 0.0)
+    ptowatersd = np.std(ncf['balance']['P']['to_water'][:,:,:], axis = (1,2))
+    ax = fig.add_subplot(gs[1,2])
+    ax = draw_comparison(ax, ditch_depths, ptowater, ptowatersd, '', 
+                         '$kg ha^{-3} yr^{-3}$', 'P to water', 'orange', 
+                         facecolor, fs,  xlabel= True)
+    
+        
+    #wtmin = min(wt0) - 0.7
+    #cols = np.shape(wt0)[0]
+    #------------------------------
+    
+    #ax = fig.add_subplot(gs[10:, :4])
+    #ax = create_profile_line(ax, wt0, wtmin, sd0, cols, 'WT m', 'annual', fs, facecolor, 'blue')
+
+    #ax = fig.add_subplot(gs[10:, 4:8])
+    #gr = ncf['stand']['volumegrowth'][scen,:,:]
+    #ax = create_profile_boxplot(ax, gr ,cols,'green', 'WT difference', 'WT m', fs, facecolor, zero=True)
+
+    ncf.close()
+
+
+def compare_scens_immala(ff):
+
+    def draw_comparison(ax, x, y, sd, label, ylabel, title, color, facecolor, fs, xlabel=False):
+        ax.plot(x,y, 'o-', color=color, label=label)
+        ax.set_ylabel(ylabel, fontsize=fs)
+        if xlabel: ax.set_xlabel('Ditch depth, m', fontsize = fs)
+        ax.fill_between(x, y+sd, y-sd, color = color, alpha = 0.2)
+        ax.set_facecolor(facecolor)
+        ax.set_title(title, fontsize = fs)
+        #ax.legend()
+        return ax
+    
+    ncf=Dataset(ff, mode='r')                                        # water netCDF, open in reading mode
+    facecolor = '#f2f5eb'
+    fs = 15
+    fig = plt.figure(num='comparison', figsize=(12,6))   #width, height
+    gs = gridspec.GridSpec(ncols=3, nrows=2, figure=fig, wspace=0.35, hspace=0.35)
+
+
+    ditch_depths = np.array([-0.3,-0.5, -0.7, -0.9])#ncf['scen']['ditch_depths'][:]
+    
+    grresponse = ncf['stand']['volumegrowth'][:,:, :] - ncf['stand']['volumegrowth'][0,:, :] 
+    grr = np.mean(grresponse, axis=(1,2))
+    grrsd = np.std(grresponse, axis=(1,2))
+    ax = fig.add_subplot(gs[0,0])
+    ax = draw_comparison(ax, ditch_depths, grr, grrsd, 'm3 yr-1', '$m^3 ha^{-3} yr^{-3}$', 'Growth response', 'green', facecolor, fs)
+    
+    wt = np.mean(ncf['strip']['dwtyr_latesummer'][:,:, :], axis = (1,2))   # mean annual wr dim: nscens
+    sd = np.std(ncf['strip']['dwtyr_latesummer'][:,:, :], axis = (1,2))     #
+    ax = fig.add_subplot(gs[0,1])
+    ax = draw_comparison(ax, ditch_depths, wt, sd, 'water table', 'WT, m', 'Water table', 'blue', facecolor, fs)
+    
+    standco2bal = np.mean(ncf['balance']['C']['stand_c_balance_co2eq'][:, :, :], axis=(1,2))
+    standco2balsd = np.std(ncf['balance']['C']['stand_c_balance_co2eq'][:, :, :], axis=(1,2))
+    ax = fig.add_subplot(gs[0,2])
+    ax = draw_comparison(ax, ditch_depths, standco2bal, standco2balsd, '', '$kg ha^{-3} yr^{-3}$', 'Stand $CO_2$ balance', 'grey', facecolor, fs)
+    
+    
+    soilco2bal = np.mean(ncf['balance']['C']['soil_c_balance_co2eq'][:, :, :], axis=(1,2))
+    soilco2balsd = np.std(ncf['balance']['C']['soil_c_balance_co2eq'][:, :, :], axis=(1,2))
+    ax = fig.add_subplot(gs[1,0])
+    ax = draw_comparison(ax, ditch_depths, soilco2bal, soilco2balsd, '', 
+                         '$kg ha^{-3} yr^{-3}$', 'Soil $CO_2$ balance', 'grey', 
+                         facecolor, fs, xlabel=True)
+    
+    
+    ntowater = np.mean(ncf['balance']['N']['to_water'][:,:,:], axis = (1,2))
+    ntowater = np.maximum(ntowater, 0.0)
+    ntowatersd = np.std(ncf['balance']['N']['to_water'][:,:,:], axis = (1,2))
+    ax = fig.add_subplot(gs[1,1])
+    ax = draw_comparison(ax, ditch_depths, ntowater, ntowatersd, '',
+                         '$kg ha^{-3} yr^{-3}$', 'N to water', 'red', 
+                         facecolor, fs, xlabel= True)
+    
+    ptowater = np.mean(ncf['balance']['P']['to_water'][:,:,:], axis = (1,2))
+    ptowater = np.maximum(ptowater, 0.0)
+    ptowatersd = np.std(ncf['balance']['P']['to_water'][:,:,:], axis = (1,2))
+    ax = fig.add_subplot(gs[1,2])
+    ax = draw_comparison(ax, ditch_depths, ptowater, ptowatersd, '', 
+                         '$kg ha^{-3} yr^{-3}$', 'P to water', 'orange', 
+                         facecolor, fs,  xlabel= True)
+    
+        
+    #wtmin = min(wt0) - 0.7
+    #cols = np.shape(wt0)[0]
+    #------------------------------
+    
+    #ax = fig.add_subplot(gs[10:, :4])
+    #ax = create_profile_line(ax, wt0, wtmin, sd0, cols, 'WT m', 'annual', fs, facecolor, 'blue')
+
+    #ax = fig.add_subplot(gs[10:, 4:8])
+    #gr = ncf['stand']['volumegrowth'][scen,:,:]
+    #ax = create_profile_boxplot(ax, gr ,cols,'green', 'WT difference', 'WT m', fs, facecolor, zero=True)
+
+    ncf.close()
 #ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
-#scens = [0,1]
-#compare_1(ff, scens)
+# ff = 'D:/Immala_simulations/Metsakeskus/immala__38304191_50vuotta_susi_lyr_0.nc'
+# compare_scens_immala(ff)
+# hydrology(ff, 0)
+# stand(ff, 0)
+# mass(ff, 0)
+# nutrient_balance(ff, 'N', 0)

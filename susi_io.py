@@ -346,9 +346,9 @@ def print_site_description(spara):
     print ('    - Site fertility class:')
     print ('    ', spara['sfc'])
     print ('  + Stand:') 
-    print ('    - vol:', np.round(spara['vol'],0),'m3/ha' )
+    #print ('    - vol:', np.round(spara['vol'],0),'m3/ha' )
     print ('    - age:') 
-    print ('        dominat:', spara['age']['dominant'], 'yrs')
+    print ('        dominant:', spara['age']['dominant'], 'yrs')
     print ('        subdominat:', spara['age']['subdominant'], 'yrs')
     print ('        under:', spara['age']['under'], 'yrs')
     

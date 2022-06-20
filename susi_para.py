@@ -88,12 +88,18 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
         'develop_scens':{
         'species': 'Pine', 'sfc':sfc, 'sfc_specification': 1,
         'hdom':hdomSim, 'vol':volSim, 'age':ageSim, 'smc': 'Peatland',
-        'nLyrs':30, 'dzLyr': 0.05, 'L': sarkaSim, 'n':n, 
-        'ditch depth west': [-0.3, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
-        'ditch depth east': [-0.3, -0.9],
-        'ditch depth 20y west': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'ditch depth 20y east': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'scenario name': ['Control', 'DNM90'], #kasvunlisaykset
+        'nLyrs':50, 'dzLyr': 0.05, 'L': sarkaSim, 'n':n, 
+        # 'ditch depth west': [-0.5],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
+        # 'ditch depth east': [-0.5],
+        # 'ditch depth 20y west': [-0.5],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        # 'ditch depth 20y east': [-0.5],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        # 'scenario name': ['Control'], #kasvunlisaykset
+
+        'ditch depth west': [-0.3, -0.5, -0.7, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
+        'ditch depth east': [-0.3, -0.5, -0.7, -0.9],
+        'ditch depth 20y west': [-0.3, -0.5, -0.7, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'ditch depth 20y east': [-0.3, -0.5, -0.7, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'scenario name': ['Control', 'DNM50', 'DNM70', 'DNM90' ], #kasvunlisaykset
         'initial h': -0.2, 'slope': 0.0, 
         'peat type':['A','A','A','A','A','A','A','A'], 
         'peat type bottom':['A'],'anisotropy':10.,
@@ -137,6 +143,39 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
         'peatN':1.2, 'peatP':0.12, 'peatK':0.07,                               #peat nutrient contents in gravimetric %
         'enable_peattop': True, 'enable_peatmiddle': False,
         'enable_peatbottom': False,
+        'depoN': 4.0, 'depoP':0.1, 'depoK':1.0,
+        'fertilization': {
+                'application year': 2201,
+                'N':{'dose': 0.0, 'decay_k': 0.5, 'eff': 1.0},                              # fertilization dose in kg ha-1, decay_k in yr-1
+                'P':{'dose': 45.0, 'decay_k': 0.2, 'eff': 1.0},
+                'K':{'dose': 100.0, 'decay_k': 0.3, 'eff': 1.0},
+                'pH_increment':1.0},  
+
+        'canopylayers': {'dominant': np.ones((int(n)), dtype=int),
+                         'subdominant': np.zeros((int(n)), dtype=int),
+                         'under': np.zeros((int(n)), dtype=int)}    
+
+            },
+
+        'ullika':{
+        'species': 'Pile', 'sfc':sfc, 'sfc_specification': 1,
+        'hdom':hdomSim, 'vol':volSim, 'age':ageSim, 'smc': 'Peatland',
+        'nLyrs':30, 'dzLyr': 0.05, 'L': sarkaSim, 'n':n, 
+        'ditch depth west': [-0.3, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
+        'ditch depth east': [-0.1, -0.9],
+        'ditch depth 20y west': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'ditch depth 20y east': [-0.1, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'scenario name': ['Control', 'DNM90'], #kasvunlisaykset
+        'initial h': -0.2, 'slope': 0.2, 
+        'peat type':['A','A','A','A','A','S','S','S'], 
+        'peat type bottom':['S'],'anisotropy':10.,
+        'vonP': True,
+        'vonP top':  [2,2,2,2,4,5,5,5], 
+        'vonP bottom': 7,
+        'bd top':None, 'bd bottom': 0.16,
+        'peatN':0.86, 'peatP':0.007, 'peatK':0.026,                               #peat nutrient contents in gravimetric %
+        'enable_peattop': True, 'enable_peatmiddle': True,
+        'enable_peatbottom': True,
         'depoN': 4.0, 'depoP':0.1, 'depoK':1.0,
         'fertilization': {
                 'application year': 2201,

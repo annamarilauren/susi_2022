@@ -23,7 +23,12 @@ class Esom():
                                               'N'               - nitrogen dynamics
                                               'P'               - phosphorus dynamics
                                               'K'               - potassium dynamics
+    TODO:
+        change self.M update to only one place, so it can be called outside
+        create an initialization loop where mor layer M[2,3,4,5,6] are iterated with a given wt, temperature and litterfall
+        
     """
+    
     # -------------- Parameters -----------------------------------------
     
     self.substance = substance
@@ -33,8 +38,10 @@ class Esom():
     # added here to Mass instance relase k1: L to out 0.1, k2 F to out 0.05 ; H to peat 0.05
                                                                             
     nutcpara = {'Mass': {'k1':1.05, 'k2': 1.05, 'k6':1.05},                     # modifiers for nutrient release in comparison to mass release
-            'N':{'k1':0.1, 'k2': 0.5, 'k6':0.5},
-            'P':{'k1':1.1, 'k2': 1.1, 'k6':1.0},
+            #'N':{'k1':0.1, 'k2': 0.5, 'k6':0.5},
+            'N':{'k1':0.1, 'k2': 0.1, 'k6':0.15},
+            #'P':{'k1':1.1, 'k2': 1.1, 'k6':1.0},
+            'P':{'k1':1.1, 'k2': 0.4, 'k6':0.35},
             'K':{'k1':1.5, 'k2': 1.5, 'k6':1.5}}
 
     self.nutc = nutcpara[substance]         
@@ -56,17 +63,17 @@ class Esom():
     self.enable_peatmiddle = spara['enable_peatmiddle']
     self.enable_peatbottom = spara['enable_peatbottom']
     
-    self.contpara_mor = {'Mass': 100.0, 'N': 1.5, 'P': 0.1, 'K': 0.05}                                                # Initial concentration of mass components in mor layer
+    self.contpara_mor = {'Mass': 100.0, 'N': 1.5, 'P': 0.05, 'K': 0.03}         # Initial concentration of mass components in mor layer, gravimetric %
 
-    self.dph = {1:3.5, 2:3.4, 3:3.3, 4:3.2, 5:3.1, 6:3.0}                                                             # pH according to site fertility class
+    self.dph = {1:3.5, 2:3.4, 3:3.3, 4:3.2, 5:3.1, 6:3.0}                      # pH according to site fertility class
 
     #------------These from spara dictionary
     x=1; y=spara['n']                          # shape of the domain    
     shape_area = (x,y)                         # input shape 
 
-    self.nLyrs = spara['nLyrs']                                     # number of soil layers
-    self.dz = np.ones(self.nLyrs)*spara['dzLyr']                                   # thickness of layers, m
-    self.z = np.cumsum(self.dz)-self.dz/2.                                    # depth of the layer center point, m 
+    self.nLyrs = spara['nLyrs']                   # number of soil layers
+    self.dz = np.ones(self.nLyrs)*spara['dzLyr']            # thickness of layers, m
+    self.z = np.cumsum(self.dz)-self.dz/2.                   # depth of the layer center point, m 
     if spara['vonP']:
         vpost = spara['vonP bottom']*np.ones(self.nLyrs)
         vpost[:len(spara['vonP top'])] = spara['vonP top']
@@ -151,20 +158,22 @@ class Esom():
     self.mu_k2 = 0.0027 * (lignin / nitrogen)**-0.3917 * adjust
     self.mu_k3 = 0.062 * (lignin / nitrogen)**-0.3972 * adjust
     #return  mu_k1, mu_k2, mu_k3
-  
+    self.out_root_lyr = np.zeros(self.y)
+    self.out_below_root_lyr =  np.zeros(self.y)
+    
   def reset_storages(self): 
 
       #initial values for the storages -> make these to dictionary and input values
-      self.previous = np.zeros(self.y)    
-
+      self.previous_mass = np.zeros(self.y)    
+      
       self.i = 0
       h_humus = 0.01                                          # Mor humus thickness in (m)
       rho_humus = 120.0                                       # Bulk density of the mor (kg m3)
       frac_L = 0.1                                            # Share of undecomposed litter (L) from the mor thickness (fraction 0...1)
       frac_F = 0.2                                            # Share of partly decomposed F material from the mor thickness (fraction 0...1)
       frac_H = 0.7                                            # Share of humified H material from the mor thickness (fraction 0...1)
-      frac_leaf = 0.8                                         # Share of non-woody material from L and F material (fraction 0...1)
-      frac_woody = 0.2                                        # Share of non-woody material from L and F material (fraction 0...1)
+      frac_leaf = 0.5                                         # Share of non-woody material from L and F material (fraction 0...1)
+      frac_woody = 0.5                                        # Share of non-woody material from L and F material (fraction 0...1)
 
       LL_mass = h_humus*frac_L*rho_humus * frac_leaf * self.contpara_mor[self.substance] / 100.
       LW_mass = h_humus*frac_L*rho_humus * frac_woody* self.contpara_mor[self.substance] / 100.
@@ -224,9 +233,9 @@ class Esom():
       #k6= 0.0006*self.t6(tp_top)*H_w 
       
       #THESE can be modified by you
-      k7= 0.0001 * self.t7(tp_top) * peat_w1 * self.enable_peattop * 2.0  #5.0       #Change this                                # Lappalainen et al 2018, gamma/VfAir slightly decomposed peat
-      k8 = 0.0001 * self.t7(tp_middle) * peat_w2 * self.enable_peatmiddle * 1.0 #1.0                                               # Lappalainen et al. 2018 gamma/VfAir highly decomposed
-      k9 = 0.0001 *self.t7(tp_bottom) * peat_w3 *self.enable_peatbottom * 0.5 #0.5
+      k7= 0.0001 * self.t7(tp_top) * peat_w1 * self.enable_peattop * 2.5 #4.0  #5.0       #Change this                                # Lappalainen et al 2018, gamma/VfAir slightly decomposed peat
+      k8 = 0.0001 * self.t7(tp_middle) * peat_w2 * self.enable_peatmiddle * 1.0 #2.0 #1.0                                               # Lappalainen et al. 2018 gamma/VfAir highly decomposed
+      k9 = 0.0001 *self.t7(tp_bottom) * peat_w3 *self.enable_peatbottom * 0.5
 
       # -> temperature separately for top peat 30 cm (take from 15 cm)
       # -> air filled porosity separately for the top and bottom ()
@@ -325,54 +334,66 @@ class Esom():
       return self.M
 
   def run_yr(self, weather, df_peat_temperatures, water_tables, nonwoodylitter, woodylitter):
-
-    ini_i = self.i
-    L0L = np.zeros((self.x, self.y))                                        # Litterfall time series (leaf & fineroots), kg m-2
-    L0L[0,:] = nonwoodylitter                                                # Leaf and fine root litter, kg m-2
-    self.nonwoodylitter = nonwoodylitter
-    self.woodylitter = woodylitter
     
-    L0W = np.zeros((self.x, self.y))                                        # Litterfall time series (woody litter), kg m-2
-    L0W[0,:] = woodylitter                                                   # Leaf and fine root litter, kg m-2
-    air_ts = weather['T'].values
-    tp_top_ts = df_peat_temperatures.iloc[:,2].values
-    tp_middle_ts = df_peat_temperatures.iloc[:,8].values
-    tp_bottom_ts = df_peat_temperatures.iloc[:,15].values
+    ini_i = self.i                                                             # Day calculator, set the first day of the year
+    P1_ini = self.M[:,:, 7]*10000.                                             # top layer peat mass in the in the beginning of yr 
+    P2_ini = self.M[:,:, 8]*10000.                                             # middle layer peat mass in the in the beginning of yr
+    P3_ini = self.M[:,:, 9]*10000.                                             # bottom layer peat mass in the in the beginning of yr 
     
-  
+    L0L = np.zeros((self.x, self.y))                                           # Litterfall time series (leaf & fineroots), kg m-2, along the strip 
+    L0L[0,:] = nonwoodylitter                                                  # Leaf and fine root litter, kg m-2, locate the litter to array
+    self.nonwoodylitter = nonwoodylitter                                       # litter to instance variables       
+    self.woodylitter = woodylitter                                             # litter to instance variables
+    
+    L0W = np.zeros((self.x, self.y))                                           # Litterfall time series (woody litter), kg m-2, empty strip shape array
+    L0W[0,:] = woodylitter                                                     # Leaf and fine root litter, kg m-2, locate the intput to arrays
+    air_ts = weather['T'].values                                               # Daily air temperatures, deg C
+    tp_top_ts = df_peat_temperatures.iloc[:,2].values                          # Peat temperature -0.125 m depth
+    tp_middle_ts = df_peat_temperatures.iloc[:,8].values                       # Peat temperature -0.4 m depth
+    tp_bottom_ts = df_peat_temperatures.iloc[:,15].values                      # Peat temperature -0.75 m depth
+    
     for n, (tair, tp_top, tp_middle, tp_bottom, wts) in enumerate(zip(air_ts, tp_top_ts, tp_middle_ts, tp_bottom_ts, water_tables.values)):    
-        # update moisture here
-        wn =   wrc(self.pF[0], wts)/wrc(self.pF[0], -0.3)
-        H_w = wrc(self.pF[0], 0.0) - wrc(self.pF[0], wts)
-        peat_w1 = self.wtToVfAir_top(wts)
-        peat_w2 = self.wtToVfAir_middle(wts)
-        peat_w3 = self.wtToVfAir_bottom(wts)
+        # Physical conditions in the peat profile
+        wn =   wrc(self.pF[0], wts) / wrc(self.pF[0], -0.3)                    # Relative water content with respect to field capacity, pF[0] refers to water retention characterisitcs in the topmost layer
+        H_w = wrc(self.pF[0], 0.0) - wrc(self.pF[0], wts)                      # Air filled pore space  
+        peat_w1 = self.wtToVfAir_top(wts)                                      # Call interpolation function WT -> volume fraction of air 
+        peat_w2 = self.wtToVfAir_middle(wts)                                   # Call interpolation function WT -> volume fraction of air
+        peat_w3 = self.wtToVfAir_bottom(wts)                                   # Call interpolation function WT -> volume fraction of air   
 
         try:                                                
             k1, k2, k3, k4, k5, k6, k7, k8, k9 = self.get_rates(tair, tp_top, tp_middle,tp_bottom, wn,  peat_w1, peat_w2, peat_w3, H_w)
         except:
           print ('fail in rates, esom run_yr')
 
-        if n==243:
-            self.M[:,:,0] = L0L        # fresh litter leaves and fine roots, kg m-2, locate end of August
-            self.M[:,:,1] = L0W        # woody litter branches and coarse roots, kg m-2, locate end of August
-        
+        if n==243:                                                             # n is day of the year
+            self.M[:,:,0] = L0L                                                 # fresh litter leaves and fine roots, kg m-2, locate end of August
+            self.M[:,:,1] = L0W                                                 # woody litter branches and coarse roots, kg m-2, locate end of August
+
         self.M = self.decompose(k1,  k2, k3, k4, k5, k6, k7, k8, k9, self.M)
-        self.mass[:,:,:,self.i] = self.M 
-        self.i +=1
+        self.mass[:,:,:,self.i] = self.M                                       # locate mass to output array  
+        self.i +=1                                                             # day counter
     end_i = self.i
     
 
-    self.out = self.M[:,:, 10]*10000. - self.previous
-    self.previous = self.M[:,:, 10]*10000.
-    return self.out
+    self.out = self.M[:,:, 10]*10000. - self.previous_mass
+    self.previous_mass = self.M[:,:, 10]*10000.
+    self.P1_out =  P1_ini - self.M[:,:, 7]*10000.
+    self.P2_out =  P2_ini - self.M[:,:, 8]*10000.  
+    self.P3_out =  P3_ini - self.M[:,:, 9]*10000.  
+    self.out_root_lyr = self.out - self.P2_out - self.P3_out
+    self.out_below_root_lyr =  self.P2_out + self.P3_out
+    
+    #return self.out
   
   def compose_export(self, stp):
         # To get total export, sum the left and right ditches 
+        docshare = 0.05
+        lmwtohmwshare = 0.04
         mass_to_c = 0.5
-        hmw = (1-0.04)*self.out * 1/1.05 * 0.05 * mass_to_c  
-        lmw = self.out * 1/1.05 * 0.05 * mass_to_c * 0.04  
-        
+        hmw = (1-lmwtohmwshare)*self.out * 1/1.05 * docshare * mass_to_c  
+        lmw = self.out * 1/1.05 * docshare * mass_to_c * lmwtohmwshare  
+        self.hmw = hmw 
+        self.lmw = lmw
         self.hmwtoditch = hmw*np.exp(-0.0004*stp.residence_time)                    # biodegradation parameters from Kalbiz et al 2003
         self.lmwtoditch= lmw*np.exp(-0.15*stp.residence_time)
         self.hmw_to_west = len(np.ravel(stp.ixwest))/stp.n * np.mean(self.hmwtoditch[0, np.ravel(stp.ixwest)])

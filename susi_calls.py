@@ -9,7 +9,7 @@ import pandas as pd
 import datetime
 from susi_utils import  get_motti, read_FMI_weather, get_mese_input
 from susi_para import get_susi_para
-from susi_main import run_susi
+from susi_main import Susi #run_susi
 import susi_io
 
 
@@ -17,14 +17,7 @@ import susi_io
 folderName=r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/' #'sensitivity/'
 susiPath = r'C:/Users/alauren/Documents/Susi_9/'
 wpath = r'C:/Users/alauren/Documents/Susi_9/'
-#mottipath =  r'C:/Users/alauren/Documents/Susi_9/'
-#mottipath =  r'C:/Users/alauren/OneDrive - University of Eastern Finland/codes/Susi_10/'
 
-#mf='motti viitasaari_mtkg.xls'
-#mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/codes/Susi_10/',
-#              'dominant':{1: 'susi_motti_input_lyr_0.xlsx', 2:'susi_motti_input_lyr_1.xlsx'},
-#              'subdominant':{1:'susi_motti_input_lyr_1.xlsx'},
-#              'under':{1:'susi_motti_input_lyr_2.xlsx'}} 
 
 mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/codes/Susi_10/',
               'dominant':{1: 'motti viitasaari_mtkg.xls'},
@@ -33,8 +26,8 @@ mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/
 
 wdata='parkano_weather.csv'
 
-start_date = datetime.datetime(2000,1,1)
-end_date=datetime.datetime(2009,12,31)
+start_date = datetime.datetime(2009,1,1)
+end_date=datetime.datetime(2012,12,31)
 start_yr = start_date.year 
 end_yr = end_date.year
 yrs = (end_date - start_date).days/365.25
@@ -63,8 +56,9 @@ wpara, cpara, org_para, spara, outpara, photopara = get_susi_para(wlocation='und
 #spara['canopylayers']['dominant'][int(n/2):] = 2                                                                        
 #spara['canopylayers']['subdominant'][:int(n/2)] = 1                                                                        
 
+susi = Susi()
  
-run_susi(forc, wpara, cpara, org_para, spara, outpara, photopara, start_yr, end_yr, wlocation = 'undefined', 
+susi.run_susi(forc, wpara, cpara, org_para, spara, outpara, photopara, start_yr, end_yr, wlocation = 'undefined', 
                                 mottifile=mottifile, peat= 'other', photosite='All data', 
                                 folderName=folderName,ageSim=ageSim, sarkaSim=sarkaSim, sfc=sfc, susiPath=susiPath)
     
@@ -73,8 +67,13 @@ run_susi(forc, wpara, cpara, org_para, spara, outpara, photopara, start_yr, end_
 #%%
 from figures import *
 ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
-scen = 0
-hydrology(ff, scen)
-stand(ff, scen)
-mass(ff, scen)
-carbon(ff, scen)
+scen = 1
+# hydrology(ff, scen)
+# stand(ff, scen)
+# mass(ff, scen)
+# carbon(ff, scen)
+# nutrient_balance(ff, 'N', scen)
+# nutrient_balance(ff, 'P', scen)
+# #nutrient_balance(ff, 'K', scen)
+# compare_1(ff, [0,3])
+compare_scens_immala(ff)

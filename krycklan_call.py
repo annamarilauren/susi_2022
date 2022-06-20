@@ -14,7 +14,7 @@ from susi_main import run_susi
 import susi_io
 
 #***************** local call for SUSI*****************************************************
-folderName=r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/' #'sensitivity/'
+folderName=r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/susi_22_out/'
 wpath = r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/krycklan/'
 wdata='krycklan2_weather.csv'
 

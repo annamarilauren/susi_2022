@@ -36,37 +36,38 @@ class Allometry():
         else:
             return df
     
-    def motti_development(self, ifile):
+    def motti_development(self, ifile, sfc):
         """
         Input:
-            spara contains information about tree species in the stand
             Motti-input file name including the folder path
         Out:
+            ALL UNITS converted to /tree, except for number of stems, which is /ha 
             interpolation functions: 
                 age in annual [yrs]  
                 age [yrs] to variables: 
                     ageToHdom, [m] 
-                    ageToBa, [m2/ha]
-                    ageToVol, [m3/ha]
-                    ageToYield, [m3/ha]
-                    ageToBm [kg dry mass / ha]
-                biomass [kg dry mass / ha] to variables:
-                    bmToLeafMass, [kg/ha] 
-                    bmToLAI, [m2/m2]
+                    ageToBa, [m2/tree]
+                    ageToVol, [m3/tree]
+                    ageToYield, [m3/tree]
+                    ageToBm [kg dry mass / tree]
+                biomass [kg dry mass / tree] to variables:
+                    bmToLeafMass, [kg/tree] 
+                    bmToLAI, [m2/m2/tree]
                     bmToHdom, [m]
-                    bmToYi, [m3/ha]
-                    bmToBa, [m2/ha]
-                    bmToLitter, [kg/ha/day]
-                    bmToStems [number/ha]
+                    bmToYi, [m3/tree]
+                    bmToBa, [m2/tree]
+                    bmToLitter, [kg/ha/tree]
+                    bmToStems [number/tree]
                 volume or yield to variables:
                     yiToVol [m3]
-                    yiToBm, [kg dry mass/ha]
-                    volToLogs, [m3/ha]
-                    volToPulp, [m3/ha]
+                    yiToBm, [kg dry mass/tree]
+                    volToLogs, [m3/tree]
+                    volToPulp, [m3/tree]
                     sp    species
             Biomass models in Motti (Repola 2008, 2009) have been develped for mineral soils. In peatlands the 
             leaf mass is 35.5% lower. This bias is corrected in construction of the interpolation function
         Modifications needed:
+            
             create new litter scheme: see Dec 21 esom model development
             biomass to nutrient interpolation functions: N, P, K
             nutrient to biomass interpolation functions
@@ -79,19 +80,37 @@ class Allometry():
         df, sp = self.get_motti(ifile, return_spe=True)
         sp = sp if sp < 4 else 3
         spe = species_codes[sp]
+        leaf_scale ={1: 1.1, 2: 1.2, 3: 1.355, 4:1.4, 5: 1.5, 6: 1.6 }    # scales the leaf mass down from mineral soil, key is the site fertility class
     
     #----modify the data frame, include age = 0-------------------------
         row = np.zeros((np.shape(df)[1]), dtype=float)
         dfrow = pd.DataFrame([row])
         dfrow.columns = cnames
         df = pd.concat([dfrow, df], axis=0)
-        df.loc[0, 'N'] = df.loc[1, 'N']                                             # modify stem number at 0 yrs 
-        
+        nrows = df.shape[0]
+        df['new_index']= range(nrows)
+        df = df.set_index('new_index')
+
+        df.at[0, 'N'] = df.at[1, 'N']                                             # modify stem number at 0 yrs 
         df[['stem', 'branch_living', 'branch_dead', 'leaves', 
             'stump', 'roots_coarse', 'roots_fine']] = df[['stem','branch_living', 
                                                           'branch_dead', 'leaves', 
                                                           'stump', 'roots_coarse', 
                                                           'roots_fine']] *1000.     # unit conversion for all biomass components tn/ha -> kg/ha
+        
+        # Convert all to variables to values/stem
+                                                    
+        df[['BA',  'vol', 'logs', 'pulp', 'loss', 'yield','mortality',
+            'stem', 'branch_living', 'branch_dead', 'leaves',
+            'stump', 'roots_coarse', 'roots_fine']] = df[['BA',  'vol', 'logs', 'pulp', 'loss', 'yield','mortality',
+                                                                   'stem', 'branch_living', 'branch_dead', 'leaves',
+                                                                   'stump', 'roots_coarse', 'roots_fine']].values / df[['N',
+                                                                  'N','N','N','N','N','N','N','N','N','N','N','N','N']].values
+                                                                                                        
+        #**********************************************************************
+        # Volume and biomass variables are expressed as per mean stem: this is valid if the canopy layer diameter range is small ecough
+        # attn, attn, attn, attn, attn, attn, attn, attn, attn, attn, attn,
+        #**********************************************************************                                                  
         a_arr = np.arange(0, max(df['age'].values), 1.)                             # stand age array from 0 to max in Motti simulation, time step year
     
         
@@ -113,16 +132,18 @@ class Allometry():
         rho = {'Pine': 400., 'Spruce': 380., 'Birch':480.}                          # wood density kg/m3
         sla= {'Pine': 6.8, 'Spruce': 7.25, 'Birch':14.0}                            # one-sided specific leaf area Härkönen et al. 2015 BER 20, 181-195      
     
-        longevityLeaves = {'Pine':2.5, 'Spruce':4., 'Birch':1.}                     # yrs, life span of leaves and fine roots    
-        longevityFineRoots ={'Pine':1., 'Spruce':1., 'Birch':1.}                    # Yuan & Chen 2010, turnover 1.07 times per year    
-        longevityBranch ={'Pine':22., 'Spruce':22., 'Birch':22.}                    # Pine Mäkinen 1999
-        longevityCoarseRoots ={'Pine':22., 'Spruce':22., 'Birch':22.}               # assumption as branches
+        longevityLeaves = {'Pine':2.0, 'Spruce':4., 'Birch':1.}                     # yrs, life span of leaves and fine roots    
+        longevityFineRoots ={'Pine':0.7, 'Spruce':1., 'Birch':1.}                    # Yuan & Chen 2010, turnover 1.07 times per year    
+        # longevityBranch ={'Pine':22., 'Spruce':22., 'Birch':22.}                    # Pine Mäkinen 1999
+        # longevityCoarseRoots ={'Pine':22., 'Spruce':22., 'Birch':22.}               # assumption as branches
+        longevityBranch ={'Pine':15., 'Spruce':20., 'Birch':20.}                    # Pine Mäkinen 1999
+        longevityCoarseRoots ={'Pine':15., 'Spruce':20., 'Birch':20}               # assumption as branches
     
         #********** Interpolation data ****************************************
-        df['leaves'] = df['leaves'] / 1.355                                         # adjusting to peatland sites (Data: hannu Hökkä 2022)
+        df['leaves'] = df['leaves'] / leaf_scale[sfc]                               # adjusting to peatland sites (Data: Hannu Hökkä 2022)
         df['leafarea'] = df['leaves'].values/10000. * sla[spe]                      # leaf area index m2 m-2
-        df['stem_mass'] = df['yield'] * rho[spe]                                    # stem biomass
-        df['stem_and_stump'] = df[['stem_mass', 'stump']].sum(axis=1)
+        df['stem_mass'] = df['stem'] #df['yield'] * rho[spe]                        # stem biomass
+        df['stem_and_stump'] = df[['stem_mass', 'stump']].sum(axis=1)          
         df['bm'] = df[['stem_mass', 'branch_living', 'branch_dead', 'leaves',
             'stump', 'roots_coarse', 'roots_fine']].sum(axis=1)
         df['bm_noleaves'] =  df[['stem_mass','branch_living', 'branch_dead',  
@@ -145,9 +166,11 @@ class Allometry():
         df['N_fine_roots'] = df['roots_fine']*nuts[spe]['Foliage']['N'] / 1000.
         df['P_fine_roots'] = df['roots_fine']*nuts[spe]['Foliage']['P'] / 1000.
         df['K_fine_roots'] = df['roots_fine']*nuts[spe]['Foliage']['K'] / 1000.
-        
-        
-        
+
+        df['N_leaf_demand'] = df['N_leaves']/longevityLeaves[spe]*(1.-retrans['N']) 
+        df['P_leaf_demand'] = df['P_leaves']/longevityLeaves[spe]*(1.-retrans['P']) 
+        df['K_leaf_demand'] = df['K_leaves']/longevityLeaves[spe]*(1.-retrans['K']) 
+                
         #********** Interpolation functions ******************************************
         ageToHdom = interp1d(df['age'].values, df['hdom'].values, fill_value=(df['hdom'].values[0], df['hdom'].values[-1]), bounds_error=False)
         ageToLAI= interp1d(df['age'].values, df['leafarea'].values,fill_value= (df['leafarea'].values[0], df['leafarea'].values[-1]), bounds_error=False)        
@@ -175,12 +198,14 @@ class Allometry():
         yiToBm = interp1d(df['yield'].values, df['bm'].values, fill_value=(df['bm'].values[0], df['bm'].values[-1]), bounds_error=False)
     
         bmToYi= interp1d(df['bm_noleaves'].values,df['yield'].values, fill_value=(df['yield'].values[0], df['yield'].values[-1]), bounds_error=False)
+        bmToVol= interp1d(df['bm_noleaves'].values,df['vol'].values, fill_value=(df['vol'].values[0], df['vol'].values[-1]), bounds_error=False)
+        
         bmToBa= interp1d(df['bm_noleaves'].values,df['BA'].values, fill_value=(df['BA'].values[0], df['BA'].values[-1]), bounds_error=False)    
         bmToLeafMass = interp1d(df['bm_noleaves'].values, df['leaves'].values, fill_value=(df['leaves'].values[0], df['leaves'].values[-1]), bounds_error=False)
         bmToLAI = interp1d(df['bm_noleaves'].values, df['leaves'].values* sla[spe]/10000., fill_value=(df['leaves'].values[0]* sla[spe]/10000., df['leaves'].values[-1]* sla[spe]/10000.), bounds_error=False)
         bmToHdom = interp1d(df['bm_noleaves'].values,df['hdom'].values, fill_value=(df['hdom'].values[0], df['hdom'].values[-1]), bounds_error=False)
         bmToStems = interp1d(df['bm_noleaves'].values, df['N'].values, fill_value=(df['N'].values[0], df['N'].values[-1]), bounds_error=False)
-
+        
  
         bmToFineRoots = interp1d(df['bm_noleaves'].values, df['roots_fine'].values, fill_value=(df['roots_fine'].values[0], df['roots_fine'].values[-1]), bounds_error=False)
         bmToNFineRoots = interp1d(df['bm_noleaves'].values, df['N_fine_roots'].values, fill_value=(df['N_fine_roots'].values[0], df['N_fine_roots'].values[-1]), bounds_error=False)
@@ -192,6 +217,11 @@ class Allometry():
         bmToNWoodyLoggingResidues =  interp1d(df['bm_noleaves'].values, df['N_woody_logging_residues'].values, fill_value =(df['N_woody_logging_residues'].values[0], df['N_woody_logging_residues'].values[-1]), bounds_error=False)        
         bmToPWoodyLoggingResidues =  interp1d(df['bm_noleaves'].values, df['P_woody_logging_residues'].values, fill_value =(df['P_woody_logging_residues'].values[0], df['P_woody_logging_residues'].values[-1]), bounds_error=False)        
         bmToKWoodyLoggingResidues =  interp1d(df['bm_noleaves'].values, df['K_woody_logging_residues'].values, fill_value =(df['K_woody_logging_residues'].values[0], df['K_woody_logging_residues'].values[-1]), bounds_error=False)        
+        
+
+        bmToNLeafDemand = interp1d(df['bm_noleaves'].values, df['N_leaf_demand'].values, fill_value =(df['N_leaf_demand'].values[0], df['N_leaf_demand'].values[-1]), bounds_error=False)
+        bmToPLeafDemand = interp1d(df['bm_noleaves'].values, df['P_leaf_demand'].values, fill_value =(df['P_leaf_demand'].values[0], df['N_leaf_demand'].values[-1]), bounds_error=False)
+        bmToKLeafDemand = interp1d(df['bm_noleaves'].values, df['K_leaf_demand'].values, fill_value =(df['K_leaf_demand'].values[0], df['N_leaf_demand'].values[-1]), bounds_error=False)
         
     
         #**********************************************************************
@@ -206,13 +236,13 @@ class Allometry():
         
         """ Litter functions """
         #---- Litter arrays------------------
-        fineroot_litter = ageToFineRoots(a_arr)/longevityFineRoots[spe]*np.gradient(a_arr)                  # unit kg / ha / yr 
-        mortality_fineroot = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr)*(ageToFineRoots(a_arr))      # unitkg / ha / yr 
+        fineroot_litter = ageToFineRoots(a_arr)/longevityFineRoots[spe]*np.gradient(a_arr)                  # unit kg / tree / yr 
+        mortality_fineroot = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr)*(ageToFineRoots(a_arr))      # unitkg / tree / yr 
         mortality_leaf = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr)*(ageToLeaves(a_arr))
     
         woody_litter = ageToBranchLiving(a_arr)/longevityBranch[spe]*np.gradient(a_arr) \
                     + ageToBranchDead(a_arr)/longevityBranch[spe]*np.gradient(a_arr)  \
-                    + ageToCoarseRoots(a_arr)/longevityCoarseRoots[spe]*np.gradient(a_arr)                  # litterfall kg/ha in timestep
+                    + ageToCoarseRoots(a_arr)/longevityCoarseRoots[spe]*np.gradient(a_arr)                  # litterfall kg/tree in timestep
     
         mortality_woody = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr) *(ageToBranchDead(a_arr) + ageToBranchLiving(a_arr) 
                                                                          + ageToStemStump(a_arr) + ageToCoarseRoots(a_arr))    
@@ -291,6 +321,7 @@ class Allometry():
         allometry_f['bmToLAI'] = bmToLAI
         allometry_f['bmToHdom'] = bmToHdom
         allometry_f['bmToYi'] = bmToYi
+        allometry_f['bmToVol'] = bmToVol
         allometry_f['bmToBa'] = bmToBa
         allometry_f['bmToDbm'] = bmToDbm
     
@@ -336,8 +367,12 @@ class Allometry():
         allometry_f['bmToPFineRoots'] = bmToPFineRoots
         allometry_f['bmToKFineRoots'] = bmToKFineRoots
         
+        allometry_f['bmToNLeafDemand'] = bmToNLeafDemand
+        allometry_f['bmToPLeafDemand'] = bmToPLeafDemand
+        allometry_f['bmToKLeafDemand'] = bmToKLeafDemand
+        
+        
         
         self.allometry_f = allometry_f
         self.sp=sp
         self.df = df
-        #return allometry_f, sp, df 

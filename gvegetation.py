@@ -101,7 +101,7 @@ class Gvegetation():
                        'ds': 0.2, 'h': 0.5, 'um': 0.3, 's': 0.3}
         self.retrans ={'description': 'share of nutrients retranslocated before litterfallfor dwarf shrubs (ds), herbs & grasses (h), upland mosses (um), and sphagna (s), unit: kg kg-1',
                   'ds': {'N':0.69, 'P':0.73, 'K':0.87},'h': {'N':0.69, 'P':0.73, 'K':0.87}, 
-                  'um': {'N':0.0, 'P':0.0, 'K':0.0},'s': {'N':0.0, 'P':0.0, 'K':0.0}}
+                  'um': {'N':0.5, 'P':0.5, 'K':0.5},'s': {'N':0.5, 'P':0.5, 'K':0.5}}
         # retrans for pine {'N': 0.69, 'P': 0.73, 'K':0.87}
         #ATTN: changes 4.1.2021 fl_share pine_bog vs spruce_mire (vice versa)
         #check, and change back restranslocation for herbs 
@@ -133,6 +133,7 @@ class Gvegetation():
 
         #--------- create output arrays -----------------------------
         self.gv_tot = np.zeros(self.n)                           # Ground vegetation mass kg ha-1
+        self.gv_change = np.zeros(self.n)                        # biomass change during time step kg ha-1 yr-1
         self.gv_field = np.zeros(self.n)                         # Field layer vegetation mass
         self.gv_bot = np.zeros(self.n)                           # Bottom layer vegetation mass
         self.gv_leafmass = np.zeros(self.n)                      # Leaf mass in ground vegetation kg ha-1
@@ -285,7 +286,9 @@ class Gvegetation():
     
         #ATTN! convert barea, stems, yi, standAge from time series to list containing start and end state (adjustment to annual call)
         
-        #---------------------------------------   
+        #---------------------------------------  
+        gv_tot_ini = self.gv_tot 
+        
         gv_tot, gv_field, gv_bot, n_gv, p_gv, k_gv, n_litter, p_litter, k_litter, \
                 litterfall_gv, ds_litterfall, h_litterfall, s_litterfall,\
                     gv_leafmass = self.gv_biomass_and_nutrients(ts, vol, stems, ba,  age)
@@ -317,7 +320,7 @@ class Gvegetation():
         self.h_litterfall = h_litterfall                     # herbs and grasses litterfall kg ha-1 yr-1
         self.s_litterfall = s_litterfall                     # sphagnum mosses litterfall kg ha-1 yr-1
         self.nonwoodylitter = litterfall_gv
-    
+        self.gv_change = gv_tot_ini - self.gv_tot
         
         
         return self.nup, self.pup, self.kup, self.n_litter, self.p_litter, self.k_litter, self.litterfall_gv, self.gv_leafmass
