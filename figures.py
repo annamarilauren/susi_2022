@@ -1306,7 +1306,7 @@ def compare_scens(ff):
     gs = gridspec.GridSpec(ncols=3, nrows=2, figure=fig, wspace=0.35, hspace=0.35)
 
 
-    ditch_depths = ncf['scen']['ditch_depths'][:]
+    ditch_depths = ncf['scen']['ditch_depths'][:] * -1
     
     grresponse = ncf['stand']['volumegrowth'][:,:, :] - ncf['stand']['volumegrowth'][0,:, :] 
     grr = np.mean(grresponse, axis=(1,2))

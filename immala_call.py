@@ -16,25 +16,9 @@ import os
 
 
 
-#%%
-mottipath =  r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_inputs/'
-ifiles = glob.glob(mottipath +"*.xlsx")
 
-sites=[]
-for ifile in ifiles:    
-    _, filename = os.path.split(ifile)
-    fn, _ = filename.split(sep='.')
-    sites.append(fn)
+def run_immala(s, folderName, susiPath, wpath, mottipath, age, strip_width, sfc, startyr, endyr ):
 
-print (sites)
-#%%
-
-
-def run_immala(s, mottipath, age, strip_width, sfc):
-
-    folderName=r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_22_out/'
-    susiPath = r'C:/Users/alauren/Documents/Susi_10/'
-    wpath = r'C:/Users/alauren/OneDrive - University of Eastern Finland/codes/Susi_10/'
     
 
     mottifile = {'path':mottipath,
@@ -42,18 +26,18 @@ def run_immala(s, mottipath, age, strip_width, sfc):
           'subdominant':{0:'susi_motti_input_lyr_1.xlsx'},
           'under':{0:'susi_motti_input_lyr_2.xlsx'}} 
 
-    start_date = datetime.datetime(2000, 1, 1)
-    end_date=datetime.datetime(2010,12,31)
+    start_date = datetime.datetime(startyr, 1, 1)
+    end_date=datetime.datetime(endyr,12,31)
     start_yr = start_date.year; end_yr = end_date.year
     yrs = (end_date - start_date).days/365.25
     length = (end_date - start_date).days +1
     wdata  =  'Imatra_weather.csv'
     
-    sarkaSim = 40
+    sarkaSim = strip_width
     n = int(sarkaSim / 2)
-    sfc =  np.ones(n, dtype = int)*3                                                                         #soil fertility class
+    sfc =  np.ones(n, dtype = int)*int(sfc)                                                                         #soil fertility class
     
-    ageSim = {'dominant':np.ones(n)*50 ,
+    ageSim = {'dominant':np.ones(n)*age ,
               'subdominant': 0*np.ones(n),
               'under': 0*np.ones(n)}                                                         # age of the stand in each node
         
@@ -80,25 +64,49 @@ def run_immala(s, mottipath, age, strip_width, sfc):
                             mottifile=mottifile, peat= 'other', photosite='All data', 
                             folderName=folderName,ageSim=ageSim, sarkaSim=sarkaSim, sfc=sfc, susiPath=susiPath)
 
-#sites                           Susi-input (motti-simuloinneista) tiedostojen nimet
-ages = [50, 60, 70]             # iät vuosina
-strip_widths =[30, 40, 50]            # sarkaleveydet m
-sfcs = [2, 3, 4]                #site fertility classes
-                                    
-for s, age, strip_width, sfc in zip(sites, ages, strip_widths, sfcs):
-    print (s, mottipath, age, strip_width, sfc)
-    run_immala(s, mottipath, age, strip_width, sfc)
-    import sys; sys.exit()
-        
-#%%
-from figures import *
-folderName=r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_22_out/'
 
-ff = folderName + sites[0] + '.nc'
-print (ff)
-scen = 0
-hydrology(ff, scen)
+
+# mottipath =  r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_inputs/'
+# ifiles = glob.glob(mottipath +"*.xlsx")
+
+# sites=[]
+# for ifile in ifiles:    
+#     _, filename = os.path.split(ifile)
+#     fn, _ = filename.split(sep='.')
+#     sites.append(fn)
+
+# print (sites)
+
+# #sites                           Susi-input (motti-simuloinneista) tiedostojen nimet
+# ages = [50, 60, 70]             # iät vuosina
+# strip_widths =[40, 40, 50]            # sarkaleveydet m
+# sfcs = [3, 3, 4]                #site fertility classes
+
+# folderName=r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_22_out/'
+# susiPath = r'C:/Users/alauren/Documents/Susi_10/'
+# wpath = r'C:/Users/alauren/OneDrive - University of Eastern Finland/codes/Susi_10/'
+# startyr = 2005
+# endyr = 2019
+                                    
+# for s, age, strip_width, sfc in zip(sites, ages, strip_widths, sfcs):
+#     print (s, mottipath, age, strip_width, sfc)
+#     run_immala(s, folderName, susiPath, wpath, mottipath, age, strip_width, sfc, startyr, endyr )
+#     import sys; sys.exit()
+
+# #%%
+# from figures import *
+# folderName=r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_22_out/'
+
+# ff = folderName + sites[0] + '.nc'
+# print (ff)
+# scen = 3
+# hydrology(ff, scen)
 # stand(ff, scen)
-# mass(ff, scen)
-# carbon(ff, scen)        
-compare_scens_immala(ff)
+# # mass(ff, scen)
+# # carbon(ff, scen)        
+# compare_scens(ff)
+
+# #%%
+# stand(ff, 3)
+
+# print (sites[0])

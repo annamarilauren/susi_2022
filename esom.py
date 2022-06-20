@@ -39,9 +39,9 @@ class Esom():
                                                                             
     nutcpara = {'Mass': {'k1':1.05, 'k2': 1.05, 'k6':1.05},                     # modifiers for nutrient release in comparison to mass release
             #'N':{'k1':0.1, 'k2': 0.5, 'k6':0.5},
-            'N':{'k1':0.1, 'k2': 0.1, 'k6':0.15},
+            'N':{'k1':0.1, 'k2': 0.1, 'k6':0.125},
             #'P':{'k1':1.1, 'k2': 1.1, 'k6':1.0},
-            'P':{'k1':1.1, 'k2': 0.4, 'k6':0.35},
+            'P':{'k1':1.1, 'k2': 0.4, 'k6':0.3},
             'K':{'k1':1.5, 'k2': 1.5, 'k6':1.5}}
 
     self.nutc = nutcpara[substance]         
@@ -101,19 +101,19 @@ class Esom():
     pF, _ = peat_hydrol_properties(self.bd[self.idtop],  var='bd', ptype='A') # peat hydraulic properties after Päivänen 1973    
     water_sto = [sum(wrc(pF, x = np.minimum(self.z[self.idtop]+g, 0.0))*self.dz[self.idtop]) for g in gwl]     #equilibrium head m
     volume_fraction_of_air = (water_sto[0] - water_sto)/water_sto[0]
-    self.wtToVfAir_top = interp1d(gwl, volume_fraction_of_air)
+    self.wtToVfAir_top = interp1d(gwl, volume_fraction_of_air, fill_value=(volume_fraction_of_air[0], volume_fraction_of_air[-1]), bounds_error=False)
     
     pF, _ = peat_hydrol_properties(self.bd[self.idmiddle],  var='bd', ptype='A') # peat hydraulic properties after Päivänen 1973    
     water_sto = [sum(wrc(pF, x = np.minimum(self.z[self.idmiddle]+g, 0.0))*self.dz[self.idmiddle]) for g in gwl]     #equilibrium head m
     water_sto
     volume_fraction_of_air = (water_sto[0] - water_sto)/water_sto[0]
-    self.wtToVfAir_middle = interp1d(gwl, volume_fraction_of_air)
+    self.wtToVfAir_middle = interp1d(gwl, volume_fraction_of_air, fill_value=(volume_fraction_of_air[0], volume_fraction_of_air[-1]), bounds_error=False)
     
     pF, _ = peat_hydrol_properties(self.bd[self.idbottom],  var='bd', ptype='A') # peat hydraulic properties after Päivänen 1973    
     water_sto = [sum(wrc(pF, x = np.minimum(self.z[self.idbottom]+g, 0.0))*self.dz[self.idbottom]) for g in gwl]     #equilibrium head m
     water_sto
     volume_fraction_of_air = (water_sto[0] - water_sto)/water_sto[0]
-    self.wtToVfAir_bottom = interp1d(gwl, volume_fraction_of_air)
+    self.wtToVfAir_bottom = interp1d(gwl, volume_fraction_of_air, fill_value=(volume_fraction_of_air[0], volume_fraction_of_air[-1]), bounds_error=False)
     
     self.pF, _ = peat_hydrol_properties(self.bd,  var='bd', ptype='A') # peat hydraulic properties after Päivänen 1973    
 
@@ -233,9 +233,9 @@ class Esom():
       #k6= 0.0006*self.t6(tp_top)*H_w 
       
       #THESE can be modified by you
-      k7= 0.0001 * self.t7(tp_top) * peat_w1 * self.enable_peattop * 2.5 #4.0  #5.0       #Change this                                # Lappalainen et al 2018, gamma/VfAir slightly decomposed peat
+      k7= 0.0001 * self.t7(tp_top) * peat_w1 * self.enable_peattop * 1.0 #2.5 #4.0  #5.0       #Change this                                # Lappalainen et al 2018, gamma/VfAir slightly decomposed peat
       k8 = 0.0001 * self.t7(tp_middle) * peat_w2 * self.enable_peatmiddle * 1.0 #2.0 #1.0                                               # Lappalainen et al. 2018 gamma/VfAir highly decomposed
-      k9 = 0.0001 *self.t7(tp_bottom) * peat_w3 *self.enable_peatbottom * 0.5
+      k9 = 0.0001 *self.t7(tp_bottom) * peat_w3 *self.enable_peatbottom * 0.33  #0.5
 
       # -> temperature separately for top peat 30 cm (take from 15 cm)
       # -> air filled porosity separately for the top and bottom ()

@@ -626,10 +626,10 @@ class Outputs():
         
         self.ncf['balance'][substance]['gv_demand'][scen, year, :] = groundvegetation_up
         self.ncf['balance'][substance]['balance_root_lyr'][scen, year, :] =  es.out_root_lyr + \
-            ferti + depo * np.ones(self.ncols)- stand_up  - groundvegetation_up
+            ferti + depo * np.ones(self.ncols) - stand_up  - groundvegetation_up
         
-        self.ncf['balance'][substance]['to_water'][scen, year, :] =  es.out + \
-            ferti + depo * np.ones(self.ncols)- stand_up  - groundvegetation_up
+        self.ncf['balance'][substance]['to_water'][scen, year, :] =  np.maximum (es.out_root_lyr + \
+            ferti + depo * np.ones(self.ncols) - stand_up  - groundvegetation_up, 0.0) + es.out_below_root_lyr
         #if substance == 'P':
         #print (substance, np.mean(es.out),   np.mean(stand_up), np.mean(groundvegetation_up))
                            #+ \

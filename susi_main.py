@@ -175,7 +175,9 @@ class Susi():
             # *************** Annual loop *****************************************************************
             for yr in range(start_yr, end_yr + 1):                                 # year loop 
                 days = (datetime.datetime(yr,12, 31) - datetime.datetime(yr,1, 1)).days + 1
-                cpy.update_amax(cpara['physpara'], stand.nut_stat)
+                
+                # CHECK THIS AND TEST
+                #cpy.update_amax(cpara['physpara'], stand.nut_stat)
     
                 #**********  Daily loop ************************************************************
                 for dd in range(days):                                             # day loop   

@@ -202,8 +202,13 @@ class StripHydrology():
             Transmissivity, tr in west surface sqrt(Tr(i-1)*Tr(i)) and east sqrt(Tr(i)*Tr(i+1)) 
         """
         n = len(Tr)
-        Trwest = np.sqrt(Tr[:n-1]*Tr[1:]); Trwest=np.append(Trwest, 0.0)
-        Treast = np.sqrt(Tr[1:]*Tr[:n-1]); Treast=np.insert(Treast, 0, 0.0)                
+        trwest = np.maximum(Tr[:n-1]*Tr[1:], 0.0)
+        #Trwest = np.sqrt(Tr[:n-1]*Tr[1:])
+        Trwest = np.sqrt(trwest); Trwest=np.append(Trwest, 0.0)
+        treast = np.maximum(Tr[1:]*Tr[:n-1], 0.0)
+        #Treast = np.sqrt(Tr[1:]*Tr[:n-1])
+        Treast = np.sqrt(treast)   
+        Treast=np.insert(Treast, 0, 0.0)                
         return Trwest, Treast
 
     def runoff(self, H, Trminus, Trplus, dt, dy,L):
