@@ -32,7 +32,7 @@ class Susi():
                  photosite=None, folderName=None, hdomSim=None, volSim=None, ageSim=None, 
                  sarkaSim=None, sfc=None, susiPath=None, simLAI=None, kaista=None, sitename=None): 
         
-        print ('******** Susi-peatland simulator v.10 (2022) c Ari Laurén *********************')
+        print ('******** Susi-peatland simulator v.10 (2022) c Annamari Laurén *********************')
         print ('           ')    
         print ('Initializing stand and site:') 
          
@@ -50,6 +50,7 @@ class Susi():
         
         out = Outputs(nscens, n, length, yrs, spara['nLyrs'], outname)
         out.initialize_scens()
+        out.initialize_paras()
         
         lat=forc['lat'][0]; lon=forc['lon'][0]                                     # location of weather file, determines the simulation location
         print ('      - Weather input:', wpara['description'], ', start:', start_yr, ', end:', end_yr) 
@@ -64,6 +65,8 @@ class Susi():
         out.initialize_canopy_layer('dominant')
         out.initialize_canopy_layer('subdominant')
         out.initialize_canopy_layer('under')
+        
+        out.write_paras(spara['sfc'], stand.dominant.tree_species, stand.subdominant.tree_species, stand.under.tree_species)
     
         susi_io.print_site_description(spara)                                      # Describe site parameters for user
     
@@ -95,7 +98,7 @@ class Susi():
         for key in cstate.keys():
             cstate[key] *= cmask
         cpy = CanopyGrid(cpara, cstate, outputs=False)                             # initialize above ground vegetation hydrology model
-        cpy.update_amax(cpara['physpara'], stand.nut_stat)
+        #cpy.update_amax(cpara['physpara'], stand.nut_stat)
         out.initialize_cpy()
         
         for key in org_para.keys():                                                 
@@ -143,7 +146,7 @@ class Susi():
             print ('Computing canopy and soil hydrology ', length, ' days', 'scenario:', scen[r])
             
             stand.reset_domain(ageSim)  
-            out.write_scen(r, (hdr_west + hdr_east)/2.0)
+            out.write_scen(r, hdr_west, hdr_east)
             
             out.write_stand(r, 0, stand)
             out.write_canopy_layer(r, 0, 'dominant', stand.dominant)

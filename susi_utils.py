@@ -940,7 +940,8 @@ def motti_development_old(spara, ifile):
 def rew(dwt):
     '''Alla hyväksi havaitut'''
     wt=np.array([-150.0, -1.0, -0.5, -0.3, -0.1, 0.0])   #water table in m
-    re=np.array([0.0, 0.2, 0.4 ,1.0, 1.0, 0.7])    #relative water uptake
+    #re=np.array([0.0, 0.2, 0.4 ,1.0, 1.0, 0.7])    #relative water uptake
+    re=np.array([0.0, 0.1, 0.4 ,1.0, 1.0, 0.7])    #aml relative water uptake
 
     frew=interp1d(wt,re,fill_value='extrapolate')    
     return frew(dwt)

@@ -32,6 +32,7 @@ class Canopylayer():
         self.yrs = yrs                                                         # number od years in the simulation
         self.remaining_share = np.ones(self.ncols)                             # share of remaining stems after thinning 0...1
         self.sfc = sfc.copy()
+        self.tree_species = np.zeros(self.ncols, dtype=np.int8)                               # tree species 1 Scots pine, 2 Norway spruce
         
         # -------- Biomass interpolation functions-------------------
         self.allodic ={}                                                       # dictionary to contain all allometric functions
@@ -41,9 +42,9 @@ class Canopylayer():
                 self.allodic[ncanopy] = Allometry()                            # allometry instance to the dictionary
                 mfile = mottipath + mottifile[ncanopy]                         # mottifile where the allometry tables exist
                 self.allodic[ncanopy].motti_development(mfile, self.sfc)       # run the allometry; interpolation functions in the instance
-         
+                self.tree_species[self.ixs[ncanopy]] = int(self.allodic[ncanopy].sp)
         self.initialize_domain(agearr, nut_stat)                               # create variables and set initial values
-
+                
         print (self.name, 'initialized' )
         
     def initialize_domain(self, agearr, nut_stat):

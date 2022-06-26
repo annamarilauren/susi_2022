@@ -80,8 +80,9 @@ class Allometry():
         df, sp = self.get_motti(ifile, return_spe=True)
         sp = sp if sp < 4 else 3
         spe = species_codes[sp]
-        leaf_scale ={1: 1.1, 2: 1.2, 3: 1.355, 4:1.4, 5: 1.5, 6: 1.6 }    # scales the leaf mass down from mineral soil, key is the site fertility class
-    
+        #leaf_scale ={1: 1.1, 2: 1.2, 3: 1.355, 4:1.4, 5: 1.5, 6: 1.6 }    # scales the leaf mass down from mineral soil, key is the site fertility class
+        leaf_scale ={1: 1.0, 2: 1.0, 3: 1.355, 4:1.4, 5: 1.45, 6: 1.5 }    # scales the leaf mass down from mineral soil, key is the site fertility class
+
     #----modify the data frame, include age = 0-------------------------
         row = np.zeros((np.shape(df)[1]), dtype=float)
         dfrow = pd.DataFrame([row])

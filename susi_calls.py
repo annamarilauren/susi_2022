@@ -26,8 +26,8 @@ mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/
 
 wdata='parkano_weather.csv'
 
-start_date = datetime.datetime(2009,1,1)
-end_date=datetime.datetime(2012,12,31)
+start_date = datetime.datetime(2000,1,1)
+end_date=datetime.datetime(2004,12,31)
 start_yr = start_date.year 
 end_yr = end_date.year
 yrs = (end_date - start_date).days/365.25
@@ -42,8 +42,8 @@ ageSim = {'dominant': 45.*np.ones(n),
 sfc =  np.ones(n, dtype=int)*3                                                                        # site fertility class
 
 #ageSim['dominant'][int(n/2):] = 2.
-
 #ageSim[4:-4] = 2.
+
 site = 'develop_scens'
 
 forc=read_FMI_weather(0, start_date, end_date, sourcefile=wpath+wdata)           # read weather input
@@ -64,16 +64,16 @@ susi.run_susi(forc, wpara, cpara, org_para, spara, outpara, photopara, start_yr,
     
           
              
-#%%
-from figures import *
-ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
-scen = 1
-# hydrology(ff, scen)
-# stand(ff, scen)
-# mass(ff, scen)
-# carbon(ff, scen)
+# #%%
+# from figures import *
+# ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
+# scen = 1
+# # hydrology(ff, scen)
+# # stand(ff, scen)
+# # mass(ff, scen)
+# # carbon(ff, scen)
 # nutrient_balance(ff, 'N', scen)
 # nutrient_balance(ff, 'P', scen)
-# #nutrient_balance(ff, 'K', scen)
-# compare_1(ff, [0,3])
-compare_scens_immala(ff)
+# nutrient_balance(ff, 'K', scen)
+# # compare_1(ff, [0,3])
+# compare_scens(ff)

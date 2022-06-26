@@ -25,6 +25,7 @@ class Outputs():
         self.ncf.createDimension('nyrs', self.nyrs)                                          # number of years in the simulation
         self.ncf.createDimension('ndays', ndays)                                        # number of days in the simulation
         self.ncf.createDimension('nLyrs', nLyrs)                                        # numbre of peat layers in the vertical column
+        #self.ncf.createDimension('scalar', 12)
         self.ncols = ncols
 
         # call as createVariable(varname,type,(dimensions))
@@ -37,8 +38,25 @@ class Outputs():
         self.ncf.close()
     
     def initialize_scens(self):
-        ditch_depths = self.ncf.createVariable('/scen/ditch_depths','f4',('nscens',))
-        ditch_depths.units = 'ditch depth in meters, negative downwards'
+        ditch_depths_mean = self.ncf.createVariable('/scen/ditch_depths_mean','f4',('nscens',))
+        ditch_depths_mean.units = 'mean ditch depth in meters, negative downwards'
+        ditch_depths_east = self.ncf.createVariable('/scen/ditch_depths_east','f4',('nscens',))
+        ditch_depths_east.units = 'east ditch depth in meters, negative downwards'
+        ditch_depths_west = self.ncf.createVariable('/scen/ditch_depths_west','f4',('nscens',))
+        ditch_depths_west.units = 'west ditch depth in meters, negative downwards'
+        
+        
+    def initialize_paras(self):
+        #sitename = self.ncf.createVariable(self, 'scen/sitename', 'str', ('scalar',))
+        #sitename.units ='site name is string'
+        sfc = self.ncf.createVariable('/scen/sfc','f4',('ncols',))
+        sfc.units = 'site fertility class, integer 2 ruohoturvekangas .... 6 jäkäläturvekangas'
+        tree_species_dominant = self.ncf.createVariable('/scen/tree_species_dominant','f4',('ncols',))
+        tree_species_dominant.units = 'tree species, 1 Scots pine, 2 Norway spruce, from Motti'
+        tree_species_subdominant = self.ncf.createVariable('/scen/tree_species_subdominant','f4',('ncols',))
+        tree_species_subdominant.units = 'tree species, 1 Scots pine, 2 Norway spruce, from Motti'
+        tree_species_under = self.ncf.createVariable('/scen/tree_species_under','f4',('ncols',))
+        tree_species_under.units = 'tree species, 1 Scots pine, 2 Norway spruce, from Motti'
         
     def initialize_stand(self):    
                 
@@ -425,8 +443,16 @@ class Outputs():
 #****************************************************************************************************        
 #                      WRITING FUNCTIONS
 #****************************************************************************************************
-    def write_scen(self, scen, ditch_depth):
-        self.ncf['scen']['ditch_depths'][scen] = ditch_depth
+    def write_scen(self, scen, ditch_depth_west, ditch_depth_east):
+        self.ncf['scen']['ditch_depths_mean'][scen] = (ditch_depth_east + ditch_depth_west)/2.0
+        self.ncf['scen']['ditch_depths_east'][scen] = ditch_depth_east
+        self.ncf['scen']['ditch_depths_west'][scen] = ditch_depth_west
+        
+    def write_paras(self, sfc, dominant_sp, subdominant_sp, under_sp):
+        self.ncf['scen']['sfc'][:] = sfc
+        self.ncf['scen']['tree_species_dominant'][:] = dominant_sp 
+        self.ncf['scen']['tree_species_subdominant'][:] = subdominant_sp 
+        self.ncf['scen']['tree_species_under'][:] = under_sp
         
 
     def write_stand(self, scen, year, stand):

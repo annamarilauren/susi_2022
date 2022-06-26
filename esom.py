@@ -41,7 +41,7 @@ class Esom():
             #'N':{'k1':0.1, 'k2': 0.5, 'k6':0.5},
             'N':{'k1':0.1, 'k2': 0.1, 'k6':0.125},
             #'P':{'k1':1.1, 'k2': 1.1, 'k6':1.0},
-            'P':{'k1':1.1, 'k2': 0.4, 'k6':0.3},
+            'P':{'k1':1.1, 'k2': 0.45, 'k6':0.3},
             'K':{'k1':1.5, 'k2': 1.5, 'k6':1.5}}
 
     self.nutc = nutcpara[substance]         
@@ -85,8 +85,8 @@ class Esom():
     # ---------this to array------------
     self.sfc_specification = 1 #np.ones(shape_area, dtype=int)                        # MTkg1, MTkg2
     
-    self.bound1 = 0.3                                                                # boundary between top and middle layer, m
-    self.bound2 = 0.6                                                                # boundary between middle and bottom layers, m
+    self.bound1 = 0.2                                                                # boundary between top and middle layer, m
+    self.bound2 = 0.5                                                                # boundary between middle and bottom layers, m
     self.i = 0                                                                  # day counter
     self.x,self.y = shape_area                                                            # shape of the computation domain 
     self.mass = np.zeros((self.x,self.y,11,days))                                         # model output in four dimensions (area: x,y, storages 0:8, time)
@@ -233,9 +233,9 @@ class Esom():
       #k6= 0.0006*self.t6(tp_top)*H_w 
       
       #THESE can be modified by you
-      k7= 0.0001 * self.t7(tp_top) * peat_w1 * self.enable_peattop * 1.0 #2.5 #4.0  #5.0       #Change this                                # Lappalainen et al 2018, gamma/VfAir slightly decomposed peat
-      k8 = 0.0001 * self.t7(tp_middle) * peat_w2 * self.enable_peatmiddle * 1.0 #2.0 #1.0                                               # Lappalainen et al. 2018 gamma/VfAir highly decomposed
-      k9 = 0.0001 *self.t7(tp_bottom) * peat_w3 *self.enable_peatbottom * 0.33  #0.5
+      k7= 0.0001 * self.t7(tp_top) * peat_w1 * self.enable_peattop * 5.0 #3.5 #1.0 #2.5 #4.0  #5.0       #Change this                                # Lappalainen et al 2018, gamma/VfAir slightly decomposed peat
+      k8 = 0.0001 * self.t7(tp_middle) * peat_w2 * self.enable_peatmiddle * 0.5 #2.0 #1.0                                               # Lappalainen et al. 2018 gamma/VfAir highly decomposed
+      k9 = 0.0001 *self.t7(tp_bottom) * peat_w3 *self.enable_peatbottom * 0.1 #0.25  #0.5
 
       # -> temperature separately for top peat 30 cm (take from 15 cm)
       # -> air filled porosity separately for the top and bottom ()

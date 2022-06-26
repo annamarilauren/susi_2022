@@ -103,10 +103,10 @@ for s in sites:
                                                     
             
 #%%
-from figures import *
-ff = folderName + sites[3] + '.nc'
-scen = 0
-hydrology(ff, scen)
-stand(ff, scen)
-mass(ff, scen)
-carbon(ff, scen)        
+# from figures import *
+# ff = folderName + sites[3] + '.nc'
+# scen = 0
+# hydrology(ff, scen)
+# stand(ff, scen)
+# mass(ff, scen)
+# carbon(ff, scen)        
