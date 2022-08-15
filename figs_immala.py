@@ -28,7 +28,11 @@ def compare_scens(ff):
         #ax.legend()
         return ax
     
-    fname = ff.split('/')[-1].split('.')[0].split('_')[2]
+    #fname = ff.split('/')[-1].split('.')[0].split('_') #[1]
+    #print (ff)
+    fname = ff.split('/')[-1].split('.')[0].split('_')[2] + ff.split('/')[-1].split('.')[0].split('_')[3]
+    #print (fname)
+    #import sys; sys.exit()
     
     ncf=Dataset(ff, mode='r')                                        # water netCDF, open in reading mode
     facecolor = '#f2f5eb'
@@ -106,9 +110,14 @@ def compare_scens(ff):
     plt.savefig(outfolder + fname )
 
 #ifiles = glob.glob(r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_22_out/susi_out_1/' +"*.nc")
-ifolder = r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_22_out/susi_out_1/'
+ifolder = r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/Immala/susi_22_out/recap_set/content/susi_22_out/'
+#print (listdir(ifolder))
+# for ifile in listdir(ifolder):
+#     ff = os.path.join(ifolder, ifile)
+#     compare_scens(ff)
+#     print (ifile)
+    #import sys; sys.exit()
 
 for ifile in listdir(ifolder):
     ff = os.path.join(ifolder, ifile)
-    compare_scens(ff)
     print (ifile)

@@ -64,16 +64,16 @@ susi.run_susi(forc, wpara, cpara, org_para, spara, outpara, photopara, start_yr,
     
           
              
-# #%%
-# from figures import *
-# ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
-# scen = 1
-# # hydrology(ff, scen)
-# # stand(ff, scen)
-# # mass(ff, scen)
-# # carbon(ff, scen)
-# nutrient_balance(ff, 'N', scen)
-# nutrient_balance(ff, 'P', scen)
-# nutrient_balance(ff, 'K', scen)
-# # compare_1(ff, [0,3])
-# compare_scens(ff)
+#%%
+from figures import *
+ff = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/susi.nc'
+scen = 1
+hydrology(ff, scen)
+stand(ff, scen)
+mass(ff, scen)
+carbon(ff, scen)
+nutrient_balance(ff, 'N', scen)
+nutrient_balance(ff, 'P', scen)
+nutrient_balance(ff, 'K', scen)
+compare_1(ff, [0,3])
+compare_scens(ff)
