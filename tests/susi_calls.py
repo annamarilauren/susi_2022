@@ -5,18 +5,14 @@ Created on Wed Sep 30 14:10:42 2020
 @author: alauren
 """
 import numpy as np
-import pandas as pd
 import datetime
 from susi.susi_utils import read_FMI_weather
 from inputs.susi_para import get_susi_para
 from susi.susi_main import Susi
 
-from dwts_para import para
-
 
 #***************** local call for SUSI*****************************************************
 folderName=r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/' #'sensitivity/'
-susiPath = r'C:/Users/alauren/Documents/Susi_9/'
 wpath = r'C:/Users/alauren/OneDrive - University of Eastern Finland/codes/Susi_10/inputs/'
 
 
@@ -28,7 +24,7 @@ mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/
 wdata='parkano_weather.csv'
 
 start_date = datetime.datetime(2000,1,1)
-end_date=datetime.datetime(2004,12,31)
+end_date=datetime.datetime(2002,12,31)
 start_yr = start_date.year 
 end_yr = end_date.year
 yrs = (end_date - start_date).days/365.25
@@ -52,7 +48,6 @@ forc=read_FMI_weather(0, start_date, end_date, sourcefile=wpath+wdata)          
 wpara, cpara, org_para, spara, outpara, photopara = get_susi_para(wlocation='undefined', peat=site, 
                                                                           folderName=folderName, hdomSim=None,  
                                                                           ageSim=ageSim, sarkaSim=sarkaSim, sfc=sfc, 
-                                                                          susiPath=susiPath,
                                                                           n=n)
 #spara['canopylayers']['dominant'][int(n/2):] = 2                                                                        
 #spara['canopylayers']['subdominant'][:int(n/2)] = 1                                                                        
@@ -61,7 +56,7 @@ susi = Susi()
  
 susi.run_susi(forc, wpara, cpara, org_para, spara, outpara, photopara, start_yr, end_yr, wlocation = 'undefined', 
                                 mottifile=mottifile, peat= 'other', photosite='All data', 
-                                folderName=folderName,ageSim=ageSim, sarkaSim=sarkaSim, sfc=sfc, susiPath=susiPath)
+                                folderName=folderName,ageSim=ageSim, sarkaSim=sarkaSim, sfc=sfc)
     
           
              

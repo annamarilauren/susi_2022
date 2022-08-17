@@ -1348,7 +1348,7 @@ def compare_scens(ff):
     ax = draw_comparison(ax, ditch_depths, ptowater, ptowatersd, '', 
                          '$kg \ ha^{-1} yr^{-1}$', 'P to water', 'orange', 
                          facecolor, fs,  xlabel= True)
-    
+    """
     #ax = fig.add_subplot(gs[2,:2])
     data = {'Name': ['Growth response', 'Water table', 'Stand CO2 balance', 'Soil CO2 balence', 'N export' , 'P export'], 
             '0.3 -> 0.7': [grr[2]-grr[0], wt[2]-wt[0], standco2bal[2]-standco2bal[0], soilco2bal[2]-soilco2bal[0], 
@@ -1368,7 +1368,7 @@ def compare_scens(ff):
     ax = fig.add_subplot(gs[2:,:])
     ax.imshow(im)
     ax.axis('off')
-
+    """
     ncf.close()
 
 
