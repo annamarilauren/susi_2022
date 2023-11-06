@@ -271,7 +271,7 @@ class Growth_and_Yield_Table():
         return np.around(sum((h.values[ix] * Nd.values[ix]))/sum(Nd.values[ix]), decimals=2)
 
     
-    def forest_data_to_susi(self, distrib, age_ini = 35):
+    def forest_data_to_susi(self, distrib, species, age_ini = 35):
 
         keysN = ['N0', 'N5', 'N10', 'N15', 'N20', 'N25', 'N30', 'N35', 'N40', 'N45', 'N50']
         keysD = ['D0', 'D5', 'D10', 'D15', 'D20', 'D25', 'D30', 'D35', 'D40', 'D45', 'D50']
@@ -301,7 +301,7 @@ class Growth_and_Yield_Table():
         susi_input['Kuolleisuus'] = np.cumsum(mort_share * (vs + np.gradient(vs)/2))
     
         for bo,bc in zip(biom_out, biom_components):
-            susi_input[bo] = [self.get_biomass(distrib[kd], distrib[kh], distrib[kn], self.species)[0][bc] for kd,kh,kn in zip(keysD, keysH, keysN)]
+            susi_input[bo] = [self.get_biomass(distrib[kd], distrib[kh], distrib[kn], species)[0][bc] for kd,kh,kn in zip(keysD, keysH, keysN)]
             susi_input[bo] = susi_input[bo] / 1000.
     
         susi_input['runko(hukka)'] = susi_input['Hukka'] *420. /1000.  # vol times density of wood -> to tons/ha
@@ -355,7 +355,7 @@ class Growth_and_Yield_Table():
 
     def get_table(self, age_ini):
         DBH_classes =self.create_development(self.species, self.D, self.N, self.W, self.G, self.Hdom, self.DDY, self.fertility_class)
-        susi_input = self.forest_data_to_susi(DBH_classes, age_ini)
+        susi_input = self.forest_data_to_susi(DBH_classes, self.species, age_ini)
         return susi_input
 
     
