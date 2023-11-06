@@ -301,7 +301,7 @@ class Growth_and_Yield_Table():
         susi_input['Kuolleisuus'] = np.cumsum(mort_share * (vs + np.gradient(vs)/2))
     
         for bo,bc in zip(biom_out, biom_components):
-            susi_input[bo] = [self.get_biomass(distrib[kd], distrib[kh], distrib[kn], species)[0][bc] for kd,kh,kn in zip(keysD, keysH, keysN)]
+            susi_input[bo] = [self.get_biomass(distrib[kd], distrib[kh], distrib[kn], self.species)[0][bc] for kd,kh,kn in zip(keysD, keysH, keysN)]
             susi_input[bo] = susi_input[bo] / 1000.
     
         susi_input['runko(hukka)'] = susi_input['Hukka'] *420. /1000.  # vol times density of wood -> to tons/ha
@@ -361,7 +361,7 @@ class Growth_and_Yield_Table():
     
     def recover_weibull(self,d,N,G):
         def func(x,N,G):
-            return ((sum((x[1]/x[0] * (self.D/x[0])**(c-1) * np.exp(-(self.D/x[0])**x[1]))*N*np.pi*np.square(self.D/200.0))-G)**2)
+            return ((sum((x[1]/x[0] * (self.D/x[0])**(x[1]-1) * np.exp(-(self.D/x[0])**x[1]))*N*np.pi*np.square(self.D/200.0))-G)**2)
         
         root = minimize(func,[d, 3.6], args = (N,G), bounds=((0.1, None),(0.1,None)))
       
