@@ -10,7 +10,7 @@ import pandas as pd
 import xlsxwriter
 
 from scipy.optimize import minimize
-from stem_curve import StemCurve
+from susi.stem_curve import StemCurve
 
 class Growth_and_Yield_Table():
    
