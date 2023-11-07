@@ -15,33 +15,36 @@ from susi.stem_curve import StemCurve
 class Growth_and_Yield_Table():
    
     def __init__(self,G, N, Dg, D, Hg, Hdom, DDY, species, fertility_class,W = None, Nd = None):
-        self.G = G #16.7                   # basal area, m2/ha
-        self.N = N # 920                    # stem number, /ha
-        self.Dg = Dg # 20.0                  # mean diameter, cm
-        self.D = D
-        self.W = W
-        self.Hg = Hg #16.6                  # mean height, m
-        self.Hdom = Hdom #18.7                # dominant height, m
-        self.DDY = DDY #1400                 # temperature sum, degree days
-        self.species = species #'pine'
-        self.fertility_class = fertility_class
-        #herb = 0
+        self.G = G                           # basal area, m2/ha
+        self.N = N                           # stem number, /ha
+        self.Dg = Dg                         # mean diameter, cm
+        self.D = D                           # diameter classes, array: 1...50 cm
+        self.W = W                           # Weibull distribution, sum = 1
+        self.Hg = Hg                         # mean height, m
+        self.Hdom = Hdom                     # dominant height, m
+        self.DDY = DDY                       # temperature sum, degree days
+        self.species = species               #'pine' tree species as string
+        self.fertility_class = fertility_class   # as integer 1...6
+        
+        #herb = 0                            # fertility class dummy variables
         #mesic = 0
         #subxeric = 1
         #xeric = 0
         self.peat = 1
         self.dxpendula = 0
         self.aspen = 0
-        self.birch = 0
+        self.birch = 0 
+        sp ={'pine':1, 'spruce':2, 'birch':3}
+        self.speciesid = sp[species]                   # species id as integer              
+
+        
         if Nd is not None:
-            self.Nd = Nd
+            self.Nd = Nd                     # Number of trees in diameter classes
         else:
-            b,c =  self.recover_weibull(self.Dg,self.N,self.G)
+            b,c =  self.recover_weibull(self.Dg,self.N,self.G)           # Recover Weibull parameters using known basal area
             self.W = c / b * (D/b)**(c-1) * np.exp(-(D/b)**c)
             self.Nd = self.W * self.N
 
-
-        #FertilityClass = 4
 
     def naslund_height(self, DDY, HDOM, D, G, species):                                      # individual tree height, arguments: temperature sum, dominant height, basal area, stem diameter
        """
@@ -49,6 +52,14 @@ class Growth_and_Yield_Table():
        pituuden välisestä riippuvuudesta suomalaisissa talousmetsissä. Metsätieteen aikakauskirja 4/2015:
        215–236.
        Siipilehto edition 2022, birch:
+       input: 
+           DDY  - temperature sum, degree days, float
+           HDOM  -  dominant height of the stand, m
+           D  -  diameter classes, array 1...50, integer
+           G  -  basal area m2 ha-1
+           species - species as string
+        return:
+            tree height, m, array of floats, dimension: to all diameter classes
        """
        para = {'pine': {'m':2, 'k0': 7.136,'k1': -0.686, 'k2': -0.273, 'k3': 0.00139 , 'k4':- 0.329, 'k5':0.0,
                                       'm0': 0.530 ,'m1': 0.0136 , 'm2': -0.128, 'm3':0.0, 'varf': 0.944},
@@ -73,6 +84,13 @@ class Growth_and_Yield_Table():
         """
         Repola 2009, Biomass equations for Scots pine and Norway spruce in Finland. Silva Fennica 43(4): 625–647.
         Repola 2008, Biomass equations for birch in Finland. Silva Fennica 42(4): 605–624.
+        input:
+            D  -  diameter classes, unit cm, array of integers, 1...50
+            h  -  tree height, m, in all diameter classes
+            Nd  - number of trees in each diameter class, array of floats
+        return:
+            out - stand biomass, kg ha-1, in each biomass component
+            outs  - tree biomass, kg/tree, in each biomass component
         """
     
         #----- Model parameters  by species and biomass components -----------------
@@ -133,92 +151,92 @@ class Growth_and_Yield_Table():
             outs[component] =  np.exp(lnmass)                                       # biomass / tree kg
         return out, outs                                                            #
 
-
-# Stem Curve was here. Now in own module
-
-
-# Help function to use StemCurve-class for predicting assortment volumes:
-
-    def getAssortmentVolumes(self, d, h, species):
-        AssortmentVolumes = {'log':np.zeros(len(d)), 'pulp':np.zeros(len(d)), 'residual':np.zeros(len(d)), 'total':np.zeros(len(d))}
-    
-        for i in range(0,len(d)):
-            sp = species[i]
-            if sp > 3:
-                sp = 3
-            assortments = StemCurve().predictAssortmentVolumes(d[i], h[i], sp)
-            AssortmentVolumes['log'][i] = np.around(assortments['log'], decimals=2)
-            AssortmentVolumes['pulp'][i] = np.around(assortments['pulp'], decimals=2)
-            AssortmentVolumes['residual'][i] = np.around(assortments['residual'], decimals=2)
-            AssortmentVolumes['total'][i] = np.around(assortments['total'], decimals=2)
-    
-        return AssortmentVolumes
+    def getAssortmentVolumes(self, D, h, speciesid):
+        """
+        input:
+            D - diameter classes, cm, array 1...50
+            h - stem height,m, in each diameter class
+            speciesid in each diameter class 1 - pine, 2 - spruce, 3 - deciduous
+        """
+        assortmentVolumes = {'log':np.zeros(len(D)), 
+                             'pulp':np.zeros(len(D)), 
+                             'residual':np.zeros(len(D)), 
+                             'total':np.zeros(len(D))}
+        speciesid = np.clip(speciesid,1,3)                                     # all speciesid >3 are changed to 3 "other deciduous"
+        for i, (d, hh, sp) in enumerate(zip(D.values,h.values,speciesid.values)):
+            assortments = StemCurve().predictAssortmentVolumes(d, hh, sp)
+            assortmentVolumes['log'][i] = np.around(assortments['log'], decimals=2)
+            assortmentVolumes['pulp'][i] = np.around(assortments['pulp'], decimals=2)
+            assortmentVolumes['residual'][i] = np.around(assortments['residual'], decimals=2)
+            assortmentVolumes['total'][i] = np.around(assortments['total'], decimals=2)
+                
+        return assortmentVolumes
 
 
 # Survival model (Pukkala et al. 2021)
-    def survival_model(self, species, diameter, BAL_Total, BAL_Pine, BAL_Spruce, BAL_S_B, Peat, Aspen, Birch):
-            # Parameters (Pukkala et al. 2021):
+    def get_survival(self, speciesid, D, BAL_Total, BAL_Pine, BAL_Spruce, BAL_S_B, Peat, Aspen, Birch):
+        
+        # Parameters (Pukkala et al. 2021):
         S_param = { 'Intercept':[1.41223, 5.01677, 1.60895], 'sqrt_d':[1.8852, 0.36902, 0.71578], 'd':[-0.21317, -0.07504, -0.08236], \
                     'BAL_Total':[-0.25637, 0, 0], 'BAL_Pine':[0, 0, -0.04814], 'BAL_Spruce':[0, -0.2319, 0], 'BAL_Spruce_Broadleaf':[0, 0, -0.13481], \
                     'Peat':[-0.39878, -0.47361, -0.31789], 'Aspen':[0, 0, 0.56311], 'Birch':[0, 0, 1.40145] }
     
-    
-        fx = np.zeros(len(diameter))
-        for i in range(len(diameter)):
+        fx = np.zeros(len(D))
+        for i in range(len(D)):
             # Reclassify species code to represent species-index 'spi': 0=pine, 1=spruce, 2=other
-            if species[i] <= 2:
-                spi = species[i] - 1
+            if speciesid[i] <= 2:
+                spi = speciesid[i] - 1
             else:
                 spi = 2
-            fx[i] = S_param['Intercept'][spi] + S_param['sqrt_d'][spi] * np.sqrt(diameter[i]) + S_param['d'][spi] * diameter[i] + \
-                    S_param['BAL_Total'][spi] * (BAL_Total[i]/np.sqrt(diameter[i]+1)) + S_param['BAL_Pine'][spi] * (BAL_Pine[i]/np.sqrt(diameter[i]+1)) + \
-                    S_param['BAL_Spruce'][spi] * (BAL_Spruce[i]/np.sqrt(diameter[i]+1)) + S_param['BAL_Spruce_Broadleaf'][spi] * (BAL_S_B[i]/np.sqrt(diameter[i]+1)) + \
+            fx[i] = S_param['Intercept'][spi] + S_param['sqrt_d'][spi] * np.sqrt(D[i]) + S_param['d'][spi] * D[i] + \
+                    S_param['BAL_Total'][spi] * (BAL_Total[i]/np.sqrt(D[i]+1)) + S_param['BAL_Pine'][spi] * (BAL_Pine[i]/np.sqrt(D[i]+1)) + \
+                    S_param['BAL_Spruce'][spi] * (BAL_Spruce[i]/np.sqrt(D[i]+1)) + S_param['BAL_Spruce_Broadleaf'][spi] * (BAL_S_B[i]/np.sqrt(D[i]+1)) + \
                     S_param['Peat'][spi] * Peat[i] + S_param['Aspen'][spi] * Aspen[i] + S_param['Birch'][spi] * Birch[i]
         survival = 1 / (1 + np.exp(-fx))
         return survival
     
     # Predict survival rate:
-    def predict_survival_5_years(self, freq, sp, d, Peat=1):
-        Peat = np.repeat(Peat, len(d))
-        Aspen = np.zeros(len(d))
-        Birch = np.zeros(len(d))
-        for i in range(len(d)):
-            if sp[i]==5:
+    def predict_survival_5_years(self, freq, speciesid, D, Peat=1):
+        """
+        input:
+            speciesid
+            D
+        """
+        Peat = np.repeat(Peat, len(D))
+        Aspen = np.zeros(len(D))
+        Birch = np.zeros(len(D))
+        for i in range(len(D)):
+            if speciesid[i]==5:
                 Aspen[i] = 1
-            if (sp[i]==3) | (sp[i]==4):
+            if (speciesid[i]==3) | (speciesid[i]==4):
                 Birch[i] = 1
     
-        G_DBH_class = freq * np.pi*(d/2)**2 / 10000
-        G_plot = np.repeat(np.sum(G_DBH_class), len(d))
+        G_DBH_class = freq * np.pi*(D/2)**2 / 10000
+        G_plot = np.repeat(np.sum(G_DBH_class), len(D))
     
-        BAL_Total = np.zeros(len(d))
-        BAL_Pine = np.zeros(len(d))
-        BAL_Spruce = np.zeros(len(d))
-        BAL_S_B = np.zeros(len(d))
-        for i in range(len(d)):
-            BAL_Total[i] = np.sum(G_DBH_class[d > d[i]])
-            BAL_Pine[i] = np.sum(G_DBH_class[(d > d[i]) & (sp ==1)])
-            BAL_Spruce[i] = np.sum(G_DBH_class[(d > d[i]) & (sp == 2)])
-            BAL_S_B[i] = np.sum(G_DBH_class[(d > d[i]) & (sp != 1)])
+        BAL_Total = np.zeros(len(D))
+        BAL_Pine = np.zeros(len(D))
+        BAL_Spruce = np.zeros(len(D))
+        BAL_S_B = np.zeros(len(D))
+        for i in range(len(D)):
+            BAL_Total[i] = np.sum(G_DBH_class[D > D[i]])
+            BAL_Pine[i] = np.sum(G_DBH_class[(D > D[i]) & (speciesid ==1)])
+            BAL_Spruce[i] = np.sum(G_DBH_class[(D > D[i]) & (speciesid == 2)])
+            BAL_S_B[i] = np.sum(G_DBH_class[(D > D[i]) & (speciesid != 1)])
     
-        return np.around(self.survival_model(sp, d, BAL_Total, BAL_Pine, BAL_Spruce, BAL_S_B, Peat, Aspen, Birch), decimals=2)
+        return np.around(self.get_survival(speciesid, D, BAL_Total, BAL_Pine, BAL_Spruce, BAL_S_B, Peat, Aspen, Birch), decimals=2)
     
     
-
 # Converting the fertility class of forest data to the site type used in the diameter increment model:
-    def fertilityClass_to_SiteType(self, FertilityClass):
-        if (FertilityClass <= 2):
-            SiteType = 'Herb-rich'
-        if (FertilityClass == 3):
-            SiteType = 'Mesic'
-        if (FertilityClass == 4):
-            SiteType = 'Sub-xeric'
-        if (FertilityClass >= 5):
-            SiteType = 'Xeric'
-        return SiteType
+    def fertilityClass_to_SiteType(self, fertilityClass):
+        
+        siteType = {1: 'Herb-rich', 2: 'Herb-rich', 3: 'Mesic', 4: 'Sub-xeric', 5: 'Xeric', 6: 'Xeric'}
+        
+        return siteType[fertilityClass]
 
     # Diameter increment model (Pukkala et al. 2021):
-    def diameter_increment_model(self, initialDiameter, species, G_plot, BAL_Total, BAL_Spruce, BAL_S_B, TS, SiteType, Peat, Pendula_or_Aspen):
+    def get_diameter_increment(self, initialDiameter, speciesid, G_plot, BAL_Total, BAL_Spruce, BAL_S_B, TS, SiteType, Peat, Pendula_or_Aspen):
+        
         # Parameters (Pukkala et al. 2021):
         D_param = { 'Intercept':[-7.1552, -12.7527, -8.6306], 'sqrt_d':[0.4415, 0.1693, 0.5097], 'd':[-0.0685, -0.0301, -0.0829], \
                     'ln_G_1':[-0.2027, -0.1875, -0.3864], 'BAL_Total':[-0.1236, -0.0563, 0], 'BAL_Spruce':[0, -0.0870, 0], \
@@ -228,8 +246,8 @@ class Growth_and_Yield_Table():
         ln_D_increment = np.zeros(len(initialDiameter))
         for i in range(len(initialDiameter)):
             # Reclassify species code to represent species-index 'spi': 0=pine, 1=spruce, 2=other
-            if species[i] <= 2:
-                spi = species[i] - 1
+            if speciesid[i] <= 2:
+                spi = speciesid[i] - 1
             else:
                 spi = 2
             ln_D_increment[i] = D_param['Intercept'][spi] + D_param['sqrt_d'][spi] * np.sqrt(initialDiameter[i]) + D_param['d'][spi] * initialDiameter[i] + \
@@ -241,38 +259,49 @@ class Growth_and_Yield_Table():
         return np.exp(ln_D_increment)
     
     # Predict diameter increment for next 5 years:
-    def predict_diameter_increment_5_years(self, freq, sp, d, FertilityClass, TemperatureSum=1200, Peat=1):
+    def predict_diameter_increment_5_years(self, freq, speciesid, D, FertilityClass, TemperatureSum=1200, Peat=1):
         
-        SiteType = np.repeat(self.fertilityClass_to_SiteType(FertilityClass), len(d))
-        TS = np.repeat(TemperatureSum, len(d))
-        Peat = np.repeat(Peat, len(d))
+        SiteType = np.repeat(self.fertilityClass_to_SiteType(FertilityClass), len(D))
+        TS = np.repeat(TemperatureSum, len(D))
+        Peat = np.repeat(Peat, len(D))
     
-        Pendula_or_Aspen = np.zeros(len(d))
-        for i in range(len(d)):
-            if (sp[i]==3) | (sp[i]==5):
+        Pendula_or_Aspen = np.zeros(len(D))
+        for i in range(len(D)):
+            if (speciesid[i]==3) | (speciesid[i]==5):
                 Pendula_or_Aspen[i] = 1
     
-        G_DBH_class = freq * np.pi*(d/2)**2 / 10000
-        G_plot = np.repeat(np.sum(G_DBH_class), len(d))
+        G_DBH_class = freq * np.pi*(D/2)**2 / 10000
+        G_plot = np.repeat(np.sum(G_DBH_class), len(D))
     
-        BAL_Total = np.zeros(len(d))
-        BAL_Spruce = np.zeros(len(d))
-        BAL_S_B = np.zeros(len(d))
-        for i in range(len(d)):
-            BAL_Total[i] = np.sum(G_DBH_class[d > d[i]])
-            BAL_Spruce[i] = np.sum(G_DBH_class[(d > d[i]) & (sp == 2)])
-            BAL_S_B[i] = np.sum(G_DBH_class[(d > d[i]) & (sp != 1)])
+        BAL_Total = np.zeros(len(D))
+        BAL_Spruce = np.zeros(len(D))
+        BAL_S_B = np.zeros(len(D))
+        for i in range(len(D)):
+            BAL_Total[i] = np.sum(G_DBH_class[D > D[i]])
+            BAL_Spruce[i] = np.sum(G_DBH_class[(D > D[i]) & (speciesid == 2)])
+            BAL_S_B[i] = np.sum(G_DBH_class[(D > D[i]) & (speciesid != 1)])
     
-        return np.around(self.diameter_increment_model(d, sp, G_plot, BAL_Total, BAL_Spruce, BAL_S_B, TS, SiteType, Peat, Pendula_or_Aspen), decimals=2)
+        return np.around(self.get_diameter_increment(D, speciesid, G_plot, BAL_Total, BAL_Spruce, BAL_S_B, TS, SiteType, Peat, Pendula_or_Aspen), decimals=2)
 
     def dominant_height(self, Nd, h):
-        tmp = np.cumsum(Nd.values)[-1]-np.cumsum(Nd.values)
-        ix = np.where(tmp<100)                         #find 100 thickest trees
-        return np.around(sum((h.values[ix] * Nd.values[ix]))/sum(Nd.values[ix]), decimals=2)
+        """
+        input:
+            Nd  - number of trees in each diameter class
+            h  - height of trees, m, in each diameter class
+        output:
+            dominant height, m, mean diameter of 100 thickest trees
+        """
+        tmp = np.cumsum(Nd.values)[-1]-np.cumsum(Nd.values)                   # cumulative number of trees from thickest to thinnest dimater
+        ix = np.where(tmp<100)                                                # find 100 thickest trees
+        return np.around(sum((h.values[ix] * Nd.values[ix]))/sum(Nd.values[ix]), decimals=2)   # weighed average of thick diameters (weighed with number of trees)
 
     
     def forest_data_to_susi(self, distrib, species, age_ini = 35):
-
+        """
+        input:
+            distrib - dictionary containing the stand development variables
+            species - tree species as string
+        """
         keysN = ['N0', 'N5', 'N10', 'N15', 'N20', 'N25', 'N30', 'N35', 'N40', 'N45', 'N50']
         keysD = ['D0', 'D5', 'D10', 'D15', 'D20', 'D25', 'D30', 'D35', 'D40', 'D45', 'D50']
         keysH = ['H0', 'H5', 'H10', 'H15', 'H20', 'H25', 'H30', 'H35', 'H40', 'H45', 'H50']
@@ -329,24 +358,24 @@ class Growth_and_Yield_Table():
         if species == "spruce":
             sp_code = 2
         
-        DBH_classes = pd.DataFrame(data = {'species' : sp_code, 'D0' : D, 'N0' : N*W})
+        DBH_classes = pd.DataFrame(data = {'speciesid' : sp_code, 'D0' : D, 'N0' : N*W})
         
         DBH_classes['H0'] = self.naslund_height(DDY, Hdom, D, G, species)
         
         #Initial values        
         # ['log', 'pulp', 'residual', 'total']
-        assortments = self.getAssortmentVolumes(DBH_classes['D0'], DBH_classes['H0'], DBH_classes['species'])
+        assortments = self.getAssortmentVolumes(DBH_classes['D0'], DBH_classes['H0'], DBH_classes['speciesid'])
         DBH_classes['VOL0'] = assortments['total'] 
         DBH_classes['LOG0'] = assortments['log'] 
         DBH_classes['PULP0'] = assortments['pulp']  
 
         # nn and nd refer to previous timestep N nd D, kn,kd... to the ongoing timestep        
         for nn,nd,kn,kd,kh,kv,kl,kp in zip(keysN[:-1], keysD[:-1],keysN[1:],keysD[1:],keysH[1:], keysV[1:],keysL[1:],keysP[1:]):            
-            DBH_classes[kn] = np.around(DBH_classes[nn] * self.predict_survival_5_years(DBH_classes[nn], DBH_classes['species'], DBH_classes[nd]), decimals=2)
-            DBH_classes[kd] = DBH_classes[nd] + self.predict_diameter_increment_5_years(DBH_classes[nn], DBH_classes['species'], DBH_classes[nd], fertility_class, DDY)
+            DBH_classes[kn] = np.around(DBH_classes[nn] * self.predict_survival_5_years(DBH_classes[nn], DBH_classes['speciesid'], DBH_classes[nd]), decimals=2)
+            DBH_classes[kd] = DBH_classes[nd] + self.predict_diameter_increment_5_years(DBH_classes[nn], DBH_classes['speciesid'], DBH_classes[nd], fertility_class, DDY)
             
             DBH_classes[kh] = self.naslund_height(DDY, Hdom, DBH_classes[kd], np.sum(DBH_classes[kn] * np.pi * np.square(DBH_classes[kd]/2./100.)), species)
-            assortments = self.getAssortmentVolumes(DBH_classes[kd], DBH_classes[kh], DBH_classes['species'])
+            assortments = self.getAssortmentVolumes(DBH_classes[kd], DBH_classes[kh], DBH_classes['speciesid'])
             DBH_classes[kv] = assortments['total']
             DBH_classes[kl] = assortments['log']        
             DBH_classes[kp] = assortments['pulp']
