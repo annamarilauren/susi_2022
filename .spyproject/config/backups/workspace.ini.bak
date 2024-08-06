@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['susi\\figures.py', 'susi\\susi_main.py', 'tests\\susi_calls.py', 'susi\\canopylayer.py', 'tests\\vesitase_call.py', 'tests\\wt_figures.py', 'susi\\esom.py', 'inputs\\susi_para.py', 'susi\\stand.py', 'susi\\susi_utils.py', 'susi\\strip.py']
+recent_files = ['tests\\reformwater_experiments.py', 'tests\\refromwater_lab.py', 'tests\\wt_figures.py', 'susi\\esom.py']
 
 [main]
 version = 0.2.0

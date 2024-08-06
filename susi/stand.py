@@ -95,6 +95,16 @@ class Stand():
         self.p_woody_lresid = np.zeros(ncols, dtype=float)                     # P in woody logging residues kg/ha
         self.k_woody_lresid = np.zeros(ncols, dtype=float)                     # K in woody logging residues kg/ha
 
+        self.woody_litter_mort = np.zeros(ncols, dtype=float)                  # woody litter from mortality kg/ha
+        self.n_woody_litter_mort = np.zeros(ncols, dtype=float)                # N in woody litter from mortality kg/ha
+        self.p_woody_litter_mort = np.zeros(ncols, dtype=float)                # P in woody litter from mortality kg/ha
+        self.k_woody_litter_mort = np.zeros(ncols, dtype=float)                # K in woody litter from mortality kg/ha
+
+        self.non_woody_litter_mort = np.zeros(ncols, dtype=float)              # non-woody litter from mortality kg/ha
+        self.n_non_woody_litter_mort = np.zeros(ncols, dtype=float)            # N in non-woody litter from mortality kg/ha
+        self.p_non_woody_litter_mort = np.zeros(ncols, dtype=float)            # P in non-woody litter from mortality kg/ha
+        self.k_non_woody_litter_mort = np.zeros(ncols, dtype=float)            # K in non-woody litter from mortality kg/ha
+
         self.basNdemand = np.zeros(ncols, dtype=float)                         # basic N demand kg/tree, in table growth conditions, used in nutrient status calculation
         self.basPdemand = np.zeros(ncols, dtype=float)                         # basic P demand kg/tree, in table growth conditions, used in nutrient status calculation
         self.basKdemand = np.zeros(ncols, dtype=float)                         # basic K demand kg/tree, in table growth conditions, used in nutrient status calculation
@@ -195,6 +205,16 @@ class Stand():
         self.p_woody_lresid = self.p_woody_lresid  * 0.0 
         self.k_woody_lresid = self.k_woody_lresid  * 0.0
 
+        self.woody_litter_mort = self.woody_litter_mort * 0.0
+        self.n_woody_litter_mort = self.n_woody_litter_mort * 0.0
+        self.p_woody_litter_mort = self.p_woody_litter_mort * 0.0
+        self.k_woody_litter_mort = self.k_woody_litter_mort * 0.0
+
+        self.non_woody_litter_mort = self.non_woody_litter_mort * 0.0
+        self.n_non_woody_litter_mort = self.n_non_woody_litter_mort * 0.0
+        self.p_non_woody_litter_mort = self.p_non_woody_litter_mort * 0.0
+        self.k_non_woody_litter_mort = self.k_non_woody_litter_mort * 0.0
+
         self.basNdemand = self.basNdemand * 0.0                         # basic N demand kg/tree, in table growth conditions, used in nutrient status calculation
         self.basPdemand = self.basPdemand * 0.0                          # basic P demand kg/tree, in table growth conditions, used in nutrient status calculation
         self.basKdemand = self.basKdemand * 0.0                          # basic K demand kg/tree, in table growth conditions, used in nutrient status calculation
@@ -246,6 +266,17 @@ class Stand():
             self.n_woodylitter = self.n_woodylitter + cl.n_woodylitter * cl.stems
             self.p_woodylitter = self.p_woodylitter + cl.p_woodylitter * cl.stems
             self.k_woodylitter = self.k_woodylitter + cl.k_woodylitter * cl.stems
+
+            self.woody_litter_mort = self.woody_litter_mort  + cl.woody_litter_mort * cl.stems
+            self.n_woody_litter_mort = self.n_woody_litter_mort  + cl.n_woody_litter_mort * cl.stems
+            self.p_woody_litter_mort = self.p_woody_litter_mort + cl.p_woody_litter_mort * cl.stems
+            self.k_woody_litter_mort = self.k_woody_litter_mort  + cl.k_woody_litter_mort * cl.stems
+    
+            self.non_woody_litter_mort = self.non_woody_litter_mort + cl.non_woody_litter_mort * cl.stems
+            self.n_non_woody_litter_mort = self.n_non_woody_litter_mort  + cl.n_non_woody_litter_mort * cl.stems
+            self.p_non_woody_litter_mort = self.p_non_woody_litter_mort + cl.p_non_woody_litter_mort * cl.stems
+            self.k_non_woody_litter_mort = self.k_non_woody_litter_mort 
+
 
             #self.n_demand = self.n_demand + (cl.n_demand + cl.Nleafdemand) * cl.stems
             #self.p_demand = self.p_demand + (cl.p_demand+ cl.Pleafdemand) * cl.stems
@@ -399,4 +430,4 @@ class Stand():
             cl.n_woody_lresid = cl.n_woody_lresid * 0.0
             cl.p_woody_lresid = cl.p_woody_lresid * 0.0
             cl.k_woody_lresid = cl.k_woody_lresid * 0.0
-            
+                        

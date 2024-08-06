@@ -47,7 +47,7 @@ def peat_hydrol_properties(x, unit='g/cm3', var='bd', ptype='A'):
     Kpara ={'bd':{'A':(-2.271, -9.80), 'S':(-2.321, -13.22), 'C':(-1.921, -10.702), 'L':(-1.921, -10.702)}, 
             'H':{'A':(-2.261, -0.205), 'S':(-2.471, -0.253), 'C':(-1.850, -0.278), 'L':(-2.399, -0.124)}}
     
-    vg_ini=(0.88,	0.09, 0.03, 1.3)                                              # initial van Genuchten parameters (porosity, residual water content, alfa, n)
+    vg_ini=(0.88, 0.09, 0.03, 1.3)                                              # initial van Genuchten parameters (porosity, residual water content, alfa, n)
 
     x = np.array(x)
     prs = para[var]; pF1=intp_pF1[var]
@@ -69,7 +69,11 @@ def peat_hydrol_properties(x, unit='g/cm3', var='bd', ptype='A'):
                wcont(x,*prs['pF3']), wcont(x,*prs['pF4']),wcont(x,*prs['pF4.2'])]))/100.
         
     for i,s in enumerate(np.transpose(wc)):
-        vgen[i],_= curve_fit(van_g,potentials,s, p0=vg_ini)                      # van Genuchten parameters
+        try:
+            vgen[i],_= curve_fit(van_g,potentials,s, p0=vg_ini) 
+        except:
+            print ('water retention parameters did not converge, Replaced with generic velues')     
+            vgen[i] = np.array([0.88, 0.09, 0.03, 1.3])    # van Genuchten parameters
         
     for i, a, pt in zip(range(len(x)), x, ptype):
         Ksat[i] = K(a, *Kpara[var][pt])                                          # hydraulic conductivity (cm/s -> m/s) 
@@ -1049,6 +1053,7 @@ def assimilation_yr(ppara, dfforc, wt, afp, LAI, LAI_above):
         Net primary production NPP in kg/ha/yr        
         Xa
     """
+
     attenuation = np.exp(-0.2*LAI_above) 
     days , ncols = np.shape(wt)
     par = np.zeros((ncols, 366))

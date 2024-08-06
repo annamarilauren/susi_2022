@@ -21,8 +21,6 @@ sns.set()
 
 
 folder_meas = r'C:/Users/alauren/OneDrive - University of Eastern Finland/Stenberg/puusto_ym_data_Arille/Pohjavesiaineistot/'
-folder_sim = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_4_py3/outputs/'
-
 
 params = para(period='start-end')
 print (params.keys())
@@ -246,8 +244,10 @@ for n, k in enumerate(sites):
     end_date =params[k]['end_date']
     ncf=Dataset(ff, mode='r')                                        # water netCDF, open in reading mode
     vol = np.array(ncf['stand']['volume'][0,:,1:-1]) 
-    growth = np.diff(vol, axis=0) 
-    yrs, cols = np.shape(vol)
+    growth = np.array(ncf['stand']['volumegrowth'][0,:,1:-1])
+    print (k, growth)
+    #growth = np.diff(vol, axis=0) 
+    yrs, cols = np.shape(growth)
     dfgrowth = pd.DataFrame(growth, columns=range(cols)) 
     
     bm_growth = np.array(ncf['stand']['dominant']['NPP'][0,:,1:-1]*ncf['stand']['stems'][0,:,1:-1])

@@ -22,7 +22,7 @@ class StripHydrology():
             lenpt = len(spara['peat type']); ptype[0:lenpt] = spara['peat type']    
             self.pF, self.Ksat = peat_hydrol_properties(vonP, var='H', ptype=ptype) # peat hydraulic properties after Päivänen 1973    
         else:
-            lenbd=len(spara['bd top'])    
+            lenbd=len(spara['bd top'])                                         # Bulk density in unit of g/cm3
             bd = np.ones(self.nLyrs)*spara['bd bottom'] 
             bd[0:lenbd] = spara['bd top']                                      # degree of  decomposition, von Post scale
             ptype = spara['peat type bottom']*spara['nLyrs']

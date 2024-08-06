@@ -1090,7 +1090,7 @@ def nutrient_balance(ff, substance, scen):
     h = elevation + wtls
  
     ax = fig.add_subplot(gs[10:, 6:])
-    ax = create_profile_line(ax, h, wtmin, sd, cols, 'WT m', 'annual', fs, facecolor, \
+    ax = create_profile_line(ax, h, wtmin, sd, cols, 'WT m', 'late summer', fs, facecolor, \
                              'blue', hidex=True, hidey=False, elevation = elevation)
 
     #-------------to Ditch----------------------------
@@ -1126,7 +1126,7 @@ def nutrient_balance(ff, substance, scen):
     df = pd.DataFrame(data=supply, columns=list(range(cols)))
     ax = create_profile_boxplot(ax, df, cols, 'blue', substance + ' supply', 'kg $ha^{-1} yr^{-1}$', fs, facecolor, zero=False)
 
-    #-------------Release in decomposition----------------------------
+    #-------------Release in fertilization----------------------------
     fert = ncf['balance'][substance]['fertilization_release'][scen,:, :] 
     ax = fig.add_subplot(gs[4:6, 6:])
     df = pd.DataFrame(data=fert, columns=list(range(cols)))
@@ -1286,7 +1286,132 @@ def compare_1(ff, scens):
 
     ncf.close()
 
+def compare_runs(ff_0, ff_1, scen):
+    
+    ncf_0=Dataset(ff_0, mode='r')                                        # water netCDF, open in reading mode
+    ncf_1=Dataset(ff_1, mode='r')                                        # water netCDF, open in reading mode
+    
+    facecolor = '#f2f5eb'
+    fs = 15
+    fig = plt.figure(num='run comparison', figsize=(15,18))   #width, height
+    gs = gridspec.GridSpec(ncols=12, nrows=12, figure=fig, wspace=0.25, hspace=0.25)
+    mass_to_c = 0.5
+    
+    wt0 = np.mean(ncf_0['strip']['dwtyr'][scen,:, :], axis = 0)
+    sd0 = np.std(ncf_0['strip']['dwtyr'][scen,:, :], axis = 0)
+    wtmin = min(wt0) - 0.7
+    cols = np.shape(wt0)[0]
+    #------ WATER TABLE ------------------------
+    ax = fig.add_subplot(gs[10:, :4])
+    ax = create_profile_line(ax, wt0, wtmin, sd0, cols, 'WT m', 'annual', fs, facecolor, 'blue')
 
+    wt1 = np.mean(ncf_1['strip']['dwtyr'][scen,:, :], axis = 0)
+    sd1 = np.std(ncf_1['strip']['dwtyr'][scen,:, :], axis = 0)
+ 
+    ax = fig.add_subplot(gs[10:, 4:8])
+    ax = create_profile_line(ax, wt1, wtmin, sd1, cols, '','annual', fs, facecolor, 'orange')
+
+    deltawt = ncf_1['strip']['dwtyr'][scen,:, :] - ncf_0['strip']['dwtyr'][scen,:, :]
+    ax = fig.add_subplot(gs[10:, 8:])
+    ax = create_profile_boxplot(ax, deltawt,cols,'green', 'WT difference', 'WT m', fs, facecolor, zero=True)
+    
+    #-------STAND VOLUME GROWTH-------------------------
+    
+    growth0 = ncf_0['stand']['volumegrowth'][scen,:, :]
+    ax = fig.add_subplot(gs[8:10, :4])
+    ax = create_profile_boxplot(ax, growth0, cols,'blue', 'Stand growth', 'm3ha-1yr-1', fs, facecolor)
+
+    growth1 = ncf_1['stand']['volumegrowth'][scen,:, :]
+    ax = fig.add_subplot(gs[8:10, 4:8])
+    ax = create_profile_boxplot(ax, growth1, cols,'orange', 'Stand growth', 'm3ha-1yr-1', fs, facecolor)
+
+    deltagr = growth1 - growth0
+    ax = fig.add_subplot(gs[8:10, 8:])
+    ax = create_profile_boxplot(ax, deltagr,cols,'green', 'Growth difference', 'WT m', fs, facecolor, zero=True)
+    
+    #---------HMW TO DITCH--------------------------------
+    hmwtoditch0 = ncf_0['export']['hmwtoditch'][scen,:, :]
+    ax = fig.add_subplot(gs[6:8, :4])
+    ax = create_profile_boxplot(ax, hmwtoditch0, cols,'blue', 'HMW to ditch', '', fs, facecolor)
+
+    hmwtoditch1 = ncf_1['export']['hmwtoditch'][scen,:, :]
+    ax = fig.add_subplot(gs[6:8, 4:8])
+    ax = create_profile_boxplot(ax, hmwtoditch1, cols,'orange', 'HMW to ditch', '', fs, facecolor)
+
+    deltahmw = hmwtoditch1 - hmwtoditch0
+    ax = fig.add_subplot(gs[6:8, 8:])
+    ax = create_profile_boxplot(ax, deltahmw,cols,'green', 'HMW difference', '', fs, facecolor, zero=True)
+
+    #--------LMW TO DITCH---------------------------------
+    lmwtoditch0 = ncf_0['export']['lmwtoditch'][scen,:, :]
+    ax = fig.add_subplot(gs[4:6, :4])
+    ax = create_profile_boxplot(ax, lmwtoditch0, cols,'blue', 'LMW to ditch', '', fs, facecolor)
+
+    lmwtoditch1 = ncf_1['export']['lmwtoditch'][scen,:, :]
+    ax = fig.add_subplot(gs[4:6, 4:8])
+    ax = create_profile_boxplot(ax, lmwtoditch1, cols,'orange', 'LMW to ditch', '', fs, facecolor)
+
+    deltalmw = lmwtoditch1 - lmwtoditch0
+    ax = fig.add_subplot(gs[4:6, 8:])
+    ax = create_profile_boxplot(ax, deltalmw,cols,'green', 'LMW difference', '', fs, facecolor, zero=True)
+
+    #-------soil C balance kg/ha/yr---------------------------
+    litter0 = (ncf_0['groundvegetation']['ds_litterfall'][scen,:, :]/10000.\
+        + ncf_0['groundvegetation']['h_litterfall'][scen,:, :]/10000.\
+        + ncf_0['groundvegetation']['s_litterfall'][scen,:, :]/10000.\
+        + ncf_0['stand']['nonwoodylitter'][scen, :, :]/10000.\
+        + ncf_0['stand']['woodylitter'][scen, :, :]/10000.)*mass_to_c
+
+    soil0 = ncf_0['esom']['Mass']['out'][scen,:, :]/10000.*-1 * mass_to_c + litter0
+
+    ax = fig.add_subplot(gs[2:4, :4])
+    ax = create_profile_boxplot(ax, soil0, cols,'blue', 'Soil C balance', '', fs, facecolor)
+
+    litter1 = (ncf_1['groundvegetation']['ds_litterfall'][scen,:, :]/10000.\
+        + ncf_1['groundvegetation']['h_litterfall'][scen,:, :]/10000.\
+        + ncf_1['groundvegetation']['s_litterfall'][scen,:, :]/10000.\
+        + ncf_1['stand']['nonwoodylitter'][scen, :, :]/10000.\
+        + ncf_1['stand']['woodylitter'][scen, :, :]/10000.)*mass_to_c
+
+    soil1 = ncf_1['esom']['Mass']['out'][scen,:, :]/10000.*-1 * mass_to_c + litter1
+
+    ax = fig.add_subplot(gs[2:4, 4:8])
+    ax = create_profile_boxplot(ax, soil1, cols,'orange', 'Soil C balance', '', fs, facecolor)
+
+    deltasoil = soil1 - soil0
+    ax = fig.add_subplot(gs[2:4, 8:])
+    ax = create_profile_boxplot(ax, deltasoil,cols,'green', 'Soil C difference', '', fs, facecolor, zero=True)
+
+    #------------Site C balance----------------------
+    gv = ncf_0['groundvegetation']['gv_tot'][scen,:, :]/10000. * mass_to_c
+    grgv0 = np.diff(gv, axis = 0)
+    stand = ncf_0['stand']['biomass'][scen,:, :]/10000.* mass_to_c
+    gr0 = np.diff(stand, axis = 0)
+    out0 = ncf_0['esom']['Mass']['out'][scen,:, :]/10000.*-1 * mass_to_c
+
+    site0 = gr0 + grgv0 + out0[1:, :] + litter0[1:,:]
+
+    ax = fig.add_subplot(gs[:2, :4])
+    ax = create_profile_boxplot(ax, site0, cols,'blue', 'Site C balance', '', fs, facecolor)
+
+    gv = ncf_1['groundvegetation']['gv_tot'][scen,:, :]/10000. * mass_to_c
+    grgv1 = np.diff(gv, axis = 0)
+    stand = ncf_1['stand']['biomass'][scen,:, :]/10000.* mass_to_c
+    gr1 = np.diff(stand, axis = 0)
+    out1 = ncf_1['esom']['Mass']['out'][scen,:, :]/10000.*-1 * mass_to_c
+
+    site1 = gr1 + grgv1 + out1[1:, :] + litter0[1:,:]
+
+    ax = fig.add_subplot(gs[:2, 4:8])
+    ax = create_profile_boxplot(ax, site1, cols,'orange', 'Site C balance', '', fs, facecolor)
+
+    deltasoil = site1 - site0
+    ax = fig.add_subplot(gs[:2, 8:])
+    ax = create_profile_boxplot(ax, deltasoil,cols,'green', 'Site C difference', '', fs, facecolor, zero=True)
+   
+
+    ncf_0.close()
+    ncf_1.close()
 def compare_scens(ff):
 
     def draw_comparison(ax, x, y, sd, label, ylabel, title, color, facecolor, fs, xlabel=False):
@@ -1312,7 +1437,7 @@ def compare_scens(ff):
     grr = np.mean(grresponse, axis=(1,2))
     grrsd = np.std(grresponse, axis=(1,2))
     ax = fig.add_subplot(gs[0,0])
-    ax = draw_comparison(ax, ditch_depths, grr, grrsd, 'm3 yr-1', '$m^3 ha^{-3} yr^{-1}$', 'Growth response', 'green', facecolor, fs)
+    ax = draw_comparison(ax, ditch_depths, grr, grrsd, 'm3 yr-1', '$m^3 ha^{-1} yr^{-1}$', 'Growth response', 'green', facecolor, fs)
     
     wt = np.mean(ncf['strip']['dwtyr_latesummer'][:,:, :], axis = (1,2))   # mean annual wr dim: nscens
     sd = np.std(ncf['strip']['dwtyr_latesummer'][:,:, :], axis = (1,2))     #

@@ -94,6 +94,26 @@ class Outputs():
         p_nonwoodylitter.units = 'P in stand non-woody litterfall: leaves + fineroots [kg/ha/yr]'
         k_nonwoodylitter =  self.ncf.createVariable('/stand/k_nonwoodylitter','f4',('nscens','nyrs', 'ncols',))                      # K in woody litter kg/ha/yr   
         k_nonwoodylitter.units = 'K in stand non-woody litterfall: leaves + fineroots [kg/ha/yr]'    
+        
+        woody_litter_mort = self.ncf.createVariable('/stand/woody_litter_mort','f4',('nscens','nyrs', 'ncols',))
+        woody_litter_mort.units =  'stand woody litterfall from dead trees in dry biomass [kg/ha/yr] '
+        n_woody_litter_mort = self.ncf.createVariable('/stand/n_woody_litter_mort','f4',('nscens','nyrs', 'ncols',))
+        n_woody_litter_mort.units = 'N in stand woody litterfall from dead trees in dry biomass [kg/ha/yr] '
+        p_woody_litter_mort = self.ncf.createVariable('/stand/p_woody_litter_mort','f4',('nscens','nyrs', 'ncols',))
+        p_woody_litter_mort.units = 'P in stand woody litterfall from dead trees in dry biomass [kg/ha/yr] '
+        k_woody_litter_mort = self.ncf.createVariable('/stand/k_woody_litter_mort','f4',('nscens','nyrs', 'ncols',))
+        k_woody_litter_mort.units = 'K in stand woody litterfall from dead trees in dry biomass [kg/ha/yr] '
+            
+        non_woody_litter_mort = self.ncf.createVariable('/stand/non_woody_litter_mort','f4',('nscens','nyrs', 'ncols',))
+        non_woody_litter_mort.units = 'stand nonwoody litterfall from dead trees in dry biomass [kg/ha/yr] '
+        n_non_woody_litter_mort = self.ncf.createVariable('/stand/n_non_woody_litter_mort','f4',('nscens','nyrs', 'ncols',))
+        n_non_woody_litter_mort.units = 'N in stand nonwoody litterfall from dead trees in dry biomass [kg/ha/yr] '
+        p_non_woody_litter_mort = self.ncf.createVariable('/stand/p_non_woody_litter_mort','f4',('nscens','nyrs', 'ncols',))
+        p_non_woody_litter_mort.units = 'P in stand nonwoody litterfall from dead trees in dry biomass [kg/ha/yr] '
+        k_non_woody_litter_mort = self.ncf.createVariable('/stand/k_non_woody_litter_mort','f4',('nscens','nyrs', 'ncols',))
+        k_non_woody_litter_mort.units = 'K in stand nonwoody litterfall from dead trees in dry biomass [kg/ha/yr] '
+        
+        
         pulpvolume =  self.ncf.createVariable('/stand/pulpvolume','f4',('nscens','nyrs', 'ncols',))                         # pulpwood volume m3/ha
         pulpvolume.units = 'stand pulpwood volume [m3/ha]'
         stems =  self.ncf.createVariable('/stand/stems','f4',('nscens','nyrs', 'ncols',))                              # stocking, number of stems pcs/ha
@@ -482,6 +502,16 @@ class Outputs():
         self.ncf['stand']['previous_nut_stat'][scen, year, :] = stand.previous_nut_stat
         self.ncf['stand']['nut_stat'][scen, year, :] = stand.nut_stat
         
+        self.ncf['stand']['woody_litter_mort'][scen, year, :] = stand.woody_litter_mort
+        self.ncf['stand']['n_woody_litter_mort'][scen, year, :] = stand.n_woody_litter_mort
+        self.ncf['stand']['p_woody_litter_mort'][scen, year, :] = stand.p_woody_litter_mort
+        self.ncf['stand']['k_woody_litter_mort'][scen, year, :] = stand.k_woody_litter_mort
+        
+        self.ncf['stand']['non_woody_litter_mort'][scen, year, :] = stand.non_woody_litter_mort
+        self.ncf['stand']['n_non_woody_litter_mort'][scen, year, :] = stand.n_non_woody_litter_mort
+        self.ncf['stand']['p_non_woody_litter_mort'][scen, year, :] = stand.p_non_woody_litter_mort
+        self.ncf['stand']['k_non_woody_litter_mort'][scen, year, :] = stand.k_non_woody_litter_mort
+        
 
 
     def write_canopy_layer(self, scen, year, name, layer):
@@ -664,7 +694,8 @@ class Outputs():
     def write_carbon_balance(self, scen, year, stand, groundvegetation, esmass, ch4):
         bm_to_c = 0.5
         c_to_co2 = 44/12.0  
-        self.ncf['balance']['C']['stand_litter_in'][scen, year, :] = (stand.nonwoodylitter + stand.nonwoody_lresid + stand.woodylitter + stand.woody_lresid) * bm_to_c
+        self.ncf['balance']['C']['stand_litter_in'][scen, year, :] = (stand.nonwoodylitter + stand.nonwoody_lresid + stand.non_woody_litter_mort
+                                                                      + stand.woodylitter + stand.woody_lresid + stand.woody_litter_mort) * bm_to_c
         self.ncf['balance']['C']['gv_litter_in'][scen, year, :] = groundvegetation.nonwoodylitter *  bm_to_c
         self.ncf['balance']['C']['stand_change'][scen, year, :] = stand.biomassgrowth * bm_to_c
         self.ncf['balance']['C']['gv_change'][scen, year, :] = groundvegetation.gv_change * bm_to_c
@@ -674,12 +705,12 @@ class Outputs():
         self.ncf['balance']['C']['LMWdoc_to_atm'][scen, year, :] = esmass.lmw - esmass.lmwtoditch
         self.ncf['balance']['C']['HMW_to_water'][scen, year, :] = esmass.hmwtoditch
         self.ncf['balance']['C']['HMW_to_atm'][scen, year, :] = esmass.hmw - esmass.hmwtoditch
-        standbal = (stand.biomassgrowth + groundvegetation.gv_change + stand.nonwoodylitter+ stand.nonwoody_lresid 
-                    + stand.woodylitter + stand.woody_lresid + groundvegetation.nonwoodylitter) * bm_to_c \
+        standbal = (stand.biomassgrowth + groundvegetation.gv_change + stand.nonwoodylitter + stand.nonwoody_lresid +stand.non_woody_litter_mort
+                    + stand.woodylitter + stand.woody_lresid + stand.woody_litter_mort + groundvegetation.nonwoodylitter) * bm_to_c \
                     - esmass.out * bm_to_c - esmass.lmw - esmass.hmw
 
-        soilbal = (stand.nonwoodylitter+ stand.nonwoody_lresid 
-                    + stand.woodylitter + stand.woody_lresid + groundvegetation.nonwoodylitter) * bm_to_c \
+        soilbal = (stand.nonwoodylitter+ stand.nonwoody_lresid  + stand.non_woody_litter_mort
+                    + stand.woodylitter + stand.woody_lresid + stand.woody_litter_mort + groundvegetation.nonwoodylitter) * bm_to_c \
                     - esmass.out * bm_to_c - esmass.lmw - esmass.hmw
                     
         self.ncf['balance']['C']['stand_c_balance_c'][scen, year, :] = standbal - ch4*(12/16.0)

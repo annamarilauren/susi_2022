@@ -19,20 +19,22 @@ import susi.susi_io
 #***************** local call for SUSI*****************************************************
 folderName=r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/susi_22_out/'
 
-#folderName=r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/Susi_8_3_py37/outputs/' #'sensitivity/'
 
-susiPath = r'C:/Users/alauren/Documents/Susi_9/'
 wpath = r'C:/Users/alauren/Documents/WinPython-64bit-2.7.10.3/susi_experim/weather/'
 mottipath =  r'C:/Users/alauren/OneDrive - University of Eastern Finland/Henkilöt/Stenberg/motti_Arille/'
+
 sites =['ansa21', 'ansa26', 'jaakkoin61', 'jaakkoin62', 'koira11', 'koira12',
     'neva11', 'neva14', 'neva31', 'neva34','parkano11']
  
 params = para(period='start-end')
 
+
 for s in sites:
     if not params[s]['thinning']: 
         print (s)
-
+        #print (params[s])
+        #import sys; sys.exit()
+        
         mottifile = {'path':mottipath,
               'dominant':{1: params[s]['mottifile']},
               'subdominant':{0:'susi_motti_input_lyr_1.xlsx'},
@@ -45,7 +47,7 @@ for s in sites:
         length = (end_date - start_date).days +1
         wdata  =  params[s]['wfile']
         
-        sarkaSim = params[s]['Swidth']
+        sarkaSim = params[s]['Swidth'] #+ 4.0
         n = int(sarkaSim / 2)
         sfc =  np.ones(n, dtype = int)*params[s]['sfc']                                                                         #soil fertility class
         
@@ -56,7 +58,6 @@ for s in sites:
 
         ddwest = params[s]['ddepth']
         ddeast = params[s]['ddepth'] 
-        bd = params[s]['bulk dens']/1000. #0.14 #idata.T[nro]['bd']
         
         site = 'wbal_scens'
         
@@ -69,7 +70,6 @@ for s in sites:
         wpara, cpara, org_para, spara, outpara, photopara = get_susi_para(wlocation='undefined', peat=site, 
                                                                                   folderName=folderName, hdomSim=None,  
                                                                                   ageSim=ageSim, sarkaSim=sarkaSim, sfc=sfc, 
-                                                                                  susiPath=susiPath,
                                                                                   n=n)
         spara['sarkaSim'] = sarkaSim
         spara['n'] = n
@@ -80,10 +80,14 @@ for s in sites:
         
         outpara['netcdf'] = s + '.nc'
         
+        spara['vonP'] = True
+        spara['vonP bottom'] = 9
         spara['scenario name']=[s]
         spara['vonP top'] = params[s]['vonP']
         
         spara['peat type'] = params[s]['ptype']
+        bd = params[s]['bulk dens']/1000. #0.14 #idata.T[nro]['bd']
+        spara['bd top']=[bd, bd, bd, bd, bd, bd, bd, bd]
         #spara['peat type'] = ['S','S','S','S','S','S','S','S']
         #spara['peat type bottom']=['S']
 
@@ -97,9 +101,9 @@ for s in sites:
         susi_c = Susi()
         susi_c.run_susi(forc, wpara, cpara, org_para, spara, outpara, photopara, start_yr, end_yr, wlocation = 'undefined', 
                                 mottifile=mottifile, peat= 'other', photosite='All data', 
-                                folderName=folderName,ageSim=ageSim, sarkaSim=sarkaSim, sfc=sfc, susiPath=susiPath)
+                                folderName=folderName,ageSim=ageSim, sarkaSim=sarkaSim, sfc=sfc)
     
-                                                    
+                                                  
             
 #%%
 # from figures import *

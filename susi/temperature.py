@@ -15,7 +15,7 @@ class PeatTemperature():
             spara, contains dimensions of soil (peat) object
             mean_Ta is mean air temperature over the whole time, set as lower boundary condition
         """
-        print (spara['nLyrs'], spara['dzLyr'] )
+        #print (spara['nLyrs'], spara['dzLyr'] )
         self.nLyrs_hydro = spara['nLyrs']
         self.nLyrs = self.nLyrs_hydro + 30
         self.dz = spara['dzLyr']

@@ -142,7 +142,10 @@ class Allometry():
     
         #********** Interpolation data ****************************************
         df['leaves'] = df['leaves'] / leaf_scale[sfc]                               # adjusting to peatland sites (Data: Hannu Hökkä 2022)
-        df['leafarea'] = df['leaves'].values/10000. * sla[spe]                      # leaf area index m2 m-2
+        df['leafarea'] = df['leaves'].values /10000. * sla[spe]         #ATTN This is now leves / tree -> requires *N/1000            # leaf area index m2 m-2
+        #df['leafarea'] = df['leaves'].values * df['N'] /10000. * sla[spe]         #ATTN This is now leves / tree -> requires *N/1000            # leaf area index m2 m-2
+        # used in ageToLAI
+        
         df['stem_mass'] = df['stem'] #df['yield'] * rho[spe]                        # stem biomass
         df['stem_and_stump'] = df[['stem_mass', 'stump']].sum(axis=1)          
         df['bm'] = df[['stem_mass', 'branch_living', 'branch_dead', 'leaves',
@@ -203,6 +206,7 @@ class Allometry():
         
         bmToBa= interp1d(df['bm_noleaves'].values,df['BA'].values, fill_value=(df['BA'].values[0], df['BA'].values[-1]), bounds_error=False)    
         bmToLeafMass = interp1d(df['bm_noleaves'].values, df['leaves'].values, fill_value=(df['leaves'].values[0], df['leaves'].values[-1]), bounds_error=False)
+        bmWithLeavesToLeafMass = interp1d(df['bm'].values, df['leaves'].values, fill_value=(df['leaves'].values[0], df['leaves'].values[-1]), bounds_error=False)
         bmToLAI = interp1d(df['bm_noleaves'].values, df['leaves'].values* sla[spe]/10000., fill_value=(df['leaves'].values[0]* sla[spe]/10000., df['leaves'].values[-1]* sla[spe]/10000.), bounds_error=False)
         bmToHdom = interp1d(df['bm_noleaves'].values,df['hdom'].values, fill_value=(df['hdom'].values[0], df['hdom'].values[-1]), bounds_error=False)
         bmToStems = interp1d(df['bm_noleaves'].values, df['N'].values, fill_value=(df['N'].values[0], df['N'].values[-1]), bounds_error=False)
@@ -230,7 +234,9 @@ class Allometry():
         #              net change + fineroot_litter + woody_litter + add foliage net demand litter from other function
         # Nutrient contents in Litterfall: 
         #              fineroot litter + woody_litter + mortality_fine_root + mortality_woody + foliage litter and net demand from another function
-        # Arrange: 
+        #              ATTN REMOVE mortality from general litter and make an own function for that. 
+        #                     Litter originating from trees is used later in allocation of NPP. Mortality litter messes this up.
+        #Arrange: 
         #              demand functions; mass, N, P, K 
         #              litter functions: mass, N, P, K
         #***********************************************************************
@@ -238,13 +244,12 @@ class Allometry():
         """ Litter functions """
         #---- Litter arrays------------------
         fineroot_litter = ageToFineRoots(a_arr)/longevityFineRoots[spe]*np.gradient(a_arr)                  # unit kg / tree / yr 
-        mortality_fineroot = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr)*(ageToFineRoots(a_arr))      # unitkg / tree / yr 
-        mortality_leaf = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr)*(ageToLeaves(a_arr))
-    
         woody_litter = ageToBranchLiving(a_arr)/longevityBranch[spe]*np.gradient(a_arr) \
                     + ageToBranchDead(a_arr)/longevityBranch[spe]*np.gradient(a_arr)  \
                     + ageToCoarseRoots(a_arr)/longevityCoarseRoots[spe]*np.gradient(a_arr)                  # litterfall kg/tree in timestep
     
+        mortality_fineroot = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr)*(ageToFineRoots(a_arr))      # unitkg / tree / yr 
+        mortality_leaf = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr)*(ageToLeaves(a_arr))
         mortality_woody = -np.gradient(ageToStems(a_arr))/ageToStems(a_arr) *(ageToBranchDead(a_arr) + ageToBranchLiving(a_arr) 
                                                                          + ageToStemStump(a_arr) + ageToCoarseRoots(a_arr))    
         
@@ -258,16 +263,22 @@ class Allometry():
         bmToMortalityLeaves = interp1d(ageToBmNoLeaves(a_arr), mortality_leaf, fill_value=(mortality_leaf[0], mortality_leaf[-1]), bounds_error=False )
         bmToMortalityWoody =  interp1d(ageToBmNoLeaves(a_arr), mortality_woody, fill_value=(mortality_woody[0], mortality_woody[-1]), bounds_error=False )
     
+        bmWithLeavesToFinerootLitter = interp1d(ageToBm(a_arr), fineroot_litter, fill_value=(fineroot_litter[0], fineroot_litter[-1]), bounds_error=False )    
+        bmWithLeavesToWoodyLitter = interp1d(ageToBm(a_arr), woody_litter, fill_value=(woody_litter[0], woody_litter[-1]), bounds_error=False )
     
         """ Demand functions """
         #-------- arrays--------------------------
-        N_fineroot_litter = (1.0-retrans['N'])*nuts[spe]['Foliage']['N'] / 1000. * fineroot_litter + mortality_fineroot*nuts[spe]['Foliage']['N'] / 1000.
-        P_fineroot_litter = (1.0-retrans['P'])*nuts[spe]['Foliage']['P'] / 1000. * fineroot_litter + mortality_fineroot*nuts[spe]['Foliage']['P'] / 1000.
-        K_fineroot_litter = (1.0-retrans['K'])*nuts[spe]['Foliage']['K'] / 1000. * fineroot_litter + mortality_fineroot*nuts[spe]['Foliage']['K'] / 1000.
+        N_fineroot_litter = (1.0-retrans['N'])*nuts[spe]['Foliage']['N'] / 1000. * fineroot_litter #+ mortality_fineroot*nuts[spe]['Foliage']['N'] / 1000.
+        P_fineroot_litter = (1.0-retrans['P'])*nuts[spe]['Foliage']['P'] / 1000. * fineroot_litter #+ mortality_fineroot*nuts[spe]['Foliage']['P'] / 1000.
+        K_fineroot_litter = (1.0-retrans['K'])*nuts[spe]['Foliage']['K'] / 1000. * fineroot_litter #+ mortality_fineroot*nuts[spe]['Foliage']['K'] / 1000.
     
-        N_woody_litter = (1.0-retrans['N'])*nuts[spe]['Stem']['N'] / 1000. * woody_litter + mortality_woody*nuts[spe]['Stem']['N'] / 1000.
-        P_woody_litter = (1.0-retrans['P']) *nuts[spe]['Stem']['N'] / 1000.* woody_litter + mortality_woody*nuts[spe]['Stem']['P'] / 1000.
-        K_woody_litter = (1.0-retrans['K']) *nuts[spe]['Stem']['N'] / 1000.* woody_litter + mortality_woody*nuts[spe]['Stem']['K'] / 1000.
+        N_woody_litter = (1.0-retrans['N'])*nuts[spe]['Stem']['N'] / 1000.* woody_litter #+ mortality_woody*nuts[spe]['Stem']['N'] / 1000.
+        P_woody_litter = (1.0-retrans['P'])*nuts[spe]['Stem']['P'] / 1000.* woody_litter #+ mortality_woody*nuts[spe]['Stem']['P'] / 1000.
+        K_woody_litter = (1.0-retrans['K'])*nuts[spe]['Stem']['K'] / 1000.* woody_litter #+ mortality_woody*nuts[spe]['Stem']['K'] / 1000.
+    
+        N_mortality_woody = mortality_woody*nuts[spe]['Stem']['N'] / 1000.
+        P_mortality_woody = mortality_woody*nuts[spe]['Stem']['P'] / 1000.
+        K_mortality_woody = mortality_woody*nuts[spe]['Stem']['K'] / 1000.
     
         N_mortality_leaves = mortality_leaf *  nuts[spe]['Foliage']['N'] / 1000.
         P_mortality_leaves = mortality_leaf *  nuts[spe]['Foliage']['P'] / 1000.
@@ -307,7 +318,10 @@ class Allometry():
         bmToPMortalityFineRoot =  interp1d(ageToBmNoLeaves(a_arr), P_mortality_fineroot, fill_value=(P_mortality_fineroot[0], P_mortality_fineroot[-1]), bounds_error=False)
         bmToKMortalityFineRoot =  interp1d(ageToBmNoLeaves(a_arr), K_mortality_fineroot, fill_value=(K_mortality_fineroot[0], K_mortality_fineroot[-1]), bounds_error=False)
     
-   
+        bmToNMortalityWoody = interp1d(ageToBmNoLeaves(a_arr), N_mortality_woody, fill_value=(N_mortality_woody[0], N_mortality_woody[-1]), bounds_error=False)
+        bmToPMortalityWoody = interp1d(ageToBmNoLeaves(a_arr), P_mortality_woody, fill_value=(P_mortality_woody[0], P_mortality_woody[-1]), bounds_error=False)
+        bmToKMortalityWoody = interp1d(ageToBmNoLeaves(a_arr), K_mortality_woody, fill_value=(K_mortality_woody[0], K_mortality_woody[-1]), bounds_error=False)
+        
     
         allometry_f={}
         allometry_f['ageToHdom'] = ageToHdom 
@@ -319,6 +333,7 @@ class Allometry():
         allometry_f['ageToLeaves']= ageToLeaves
         
         allometry_f['bmToLeafMass'] = bmToLeafMass
+        allometry_f['bmWithLeavesToLeafMass'] = bmWithLeavesToLeafMass
         allometry_f['bmToLAI'] = bmToLAI
         allometry_f['bmToHdom'] = bmToHdom
         allometry_f['bmToYi'] = bmToYi
@@ -338,6 +353,9 @@ class Allometry():
         allometry_f['bmToMortalityFineRoot'] =  bmToMortalityFineRoot
         allometry_f['bmToMortalityWoody'] = bmToMortalityWoody
         allometry_f['bmToMortalityLeaves'] = bmToMortalityLeaves
+        
+        allometry_f['bmWithLeavesToFinerootLitter'] = bmWithLeavesToFinerootLitter
+        allometry_f['bmWithLeavesToWoodyLitter'] = bmWithLeavesToWoodyLitter
     
         allometry_f['bmToNdemand'] = bmToNdemand
         allometry_f['bmToPdemand'] = bmToPdemand
@@ -357,6 +375,10 @@ class Allometry():
         allometry_f['bmToNMortalityFineRoot'] = bmToNMortalityFineRoot
         allometry_f['bmToPMortalityFineRoot'] = bmToPMortalityFineRoot
         allometry_f['bmToKMortalityFineRoot'] = bmToKMortalityFineRoot
+        
+        allometry_f['bmToNMortalityWoody'] = bmToNMortalityWoody
+        allometry_f['bmToPMortalityWoody'] = bmToPMortalityWoody
+        allometry_f['bmToKMortalityWoody'] = bmToKMortalityWoody
         
         allometry_f['bmToWoodyLoggingResidues'] = bmToWoodyLoggingResidues
         allometry_f['bmToNWoodyLoggingResidues'] = bmToNWoodyLoggingResidues

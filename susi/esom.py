@@ -28,8 +28,9 @@ class Esom():
 #         TODO:
 #             change self.M update to only one place, so it can be called outside
 #             create an initialization loop where mor layer M[2,3,4,5,6] are iterated with a given wt, temperature and litterfall
-#             
-#     
+#
+#        BEFORE CONTINUE: change initial values and layers boundaries, share between CO2 and DOC
+
 # =============================================================================
     # -------------- Parameters -----------------------------------------
         self.substance = substance
@@ -52,6 +53,8 @@ class Esom():
                     'N':{2: {1:1.9, 2:1.9}, 3: {1:1.6, 2:1.6}, 4: {1:1.4, 2:1.4}, 5: {1:1.2, 2:1.2}},                # Unit gravimetric % Mese study           
                     'P':{2: {1:0.1,2:0.1}, 3: {1:0.08, 2:0.08}, 4: {1:0.06, 2:0.06}, 5: {1:0.05, 2:0.05}}, 
                     'K':{2: {1:0.045, 2:0.045}, 3: {1:0.04, 2:0.038}, 4: {1:0.037, 2:0.034}, 5: {1:0.03, 2:0.03}}    
+                    #'K':{2: {1:0.047, 2:0.047}, 3: {1:0.042, 2:0.040}, 4: {1:0.039, 2:0.036}, 5: {1:0.032, 2:0.032}}    
+                    
                     }
         
         keys_in_spara ={'N':'peatN', 'P': 'peatP', 'K':'peatK'}
@@ -82,18 +85,18 @@ class Esom():
             self.bd =  0.035 + 0.0159 * vpost                           # Päivänen 1973 page 36 Figure 9 unit g cm-3
                                                           
         else:
-            self.bd = spara['bd bottom']*np.ones(self.nLyrs)
-            self.bd[:len(spara['bd top'])] = spara['bd top']
+            self.bd = spara['bd bottom']*np.ones(self.nLyrs)           # Bulk density here in g/cm3    
+            self.bd[:len(spara['bd top'])] = spara['bd top'] 
         
 
         # ---------this to array------------
-        self.sfc_specification = 1 #np.ones(shape_area, dtype=int)                        # MTkg1, MTkg2
+        self.sfc_specification = 2 #np.ones(shape_area, dtype=int)             # MTkg1, MTkg2
         
-        self.bound1 = 0.15  #0.2                                                                # boundary between top and middle layer, m
-        self.bound2 = 0.4    #0.5                                                            # boundary between middle and bottom layers, m
-        self.i = 0                                                                  # day counter
-        self.x,self.y = shape_area                                                            # shape of the computation domain 
-        self.mass = np.zeros((self.x,self.y,11,days))                                         # model output in four dimensions (area: x,y, storages 0:8, time)
+        self.bound1 = 0.15  #0.2                                               # boundary between top and middle layer, m
+        self.bound2 = 0.4    #0.5                                              # boundary between middle and bottom layers, m
+        self.i = 0                                                             # day counter
+        self.x,self.y = shape_area                                             # shape of the computation domain 
+        self.mass = np.zeros((self.x,self.y,11,days))                          # model output in four dimensions (area: x,y, storages 0:8, time)
         self.pH = np.zeros(shape_area)
         self.ash = np.ones(shape_area)* 5.0                                        # %
         self.litterN = np.ones(shape_area)* 1.2                                    # %    
@@ -139,8 +142,11 @@ class Esom():
         #self.t7 = interp1d([-40., -5., 1., 27.5, 35., 60.],
         #               [0., 0., 0.2, 1.95, 1.95, 0.])
         self.t7 = interp1d([-40., -30., -20. ,-10.,   0.,  10.,  20.,  30.,  40.,  50.],             #Q10 = 2
-                       [ 0.03125,0.0625, 0.125, 0.25, 0.5, 1., 2., 4., 4., 4.]) 
-    
+                      [ 0.03125,0.0625, 0.125, 0.25, 0.5, 1., 2., 4., 8., 8.]) 
+        #self.t7 = interp1d([-40., -30., -20. ,-10.,   0.,  10.,  20.,  30.,  40.,  50.],         #Q10 = 3.6
+        #                  [1.56492339e-03, 5.69632114e-03, 2.07346089e-02, 7.54739766e-02,
+        #                   2.74725275e-01, 1.00000000e+00, 3.64000000e+00, 1.32496000e+01,
+        #                   1.32496000e+01, 1.32496000e+01])
         
     
         # moisture_functions:
@@ -157,7 +163,7 @@ class Esom():
           #N contents, branches Skonieczna,et al 2014 unit %
           #Lignin contents Kilpeläinen et al. 2003 unit %
         nitrogen = 0.7; lignin = 25.0
-        adjust = 2. #4.
+        adjust = 1. #2. #4.
         self.mu_k1 = 0.092 * (lignin / nitrogen)**-0.7396 * adjust
         self.mu_k2 = 0.0027 * (lignin / nitrogen)**-0.3917 * adjust
         self.mu_k3 = 0.062 * (lignin / nitrogen)**-0.3972 * adjust
@@ -171,8 +177,8 @@ class Esom():
           self.previous_mass = np.zeros(self.y)    
           
           self.i = 0
-          h_humus = 0.01                                          # Mor humus thickness in (m)
-          rho_humus = 120.0                                       # Bulk density of the mor (kg m3)
+          h_humus = 0.06       #0.001                                   # Mor humus thickness in (m)
+          rho_humus = 100.0                                       # Bulk density of the mor (kg m3)
           frac_L = 0.1                                            # Share of undecomposed litter (L) from the mor thickness (fraction 0...1)
           frac_F = 0.2                                            # Share of partly decomposed F material from the mor thickness (fraction 0...1)
           frac_H = 0.7                                            # Share of humified H material from the mor thickness (fraction 0...1)
@@ -243,12 +249,14 @@ class Esom():
           k3= np.clip((0.04 - 0.003*self.litterN) * self.t3(tair) * self.phi1236(wn), 0., 1.) 
           k4= 0.005 * self.litterN * self.t4(tair) * self.phi4(wn) 
           k5= 0.007 * self.t5(tair) * self.phi5(wn)
+          
+          #k6= 0.006 * self.t6(tp_top) * self.phi1236(wn)     # Chertov 1998 SOMM
           k6= 0.0006 * self.t6(tp_top) * self.phi1236(wn) #* 0.5
           #k6= 0.0006*self.t6(tp_top)*H_w 
           
           #THESE can be modified by you
-          k7= 0.0001 * self.t7(tp_top) * peat_w1 * self.enable_peattop * 5.0 #3.5 #1.0 #2.5 #4.0  #5.0       #Change this                                # Lappalainen et al 2018, gamma/VfAir slightly decomposed peat
-          k8 = 0.0001 * self.t7(tp_middle) * peat_w2 * self.enable_peatmiddle * 0.5 #2.0 #1.0                                               # Lappalainen et al. 2018 gamma/VfAir highly decomposed
+          k7= 0.00045 * self.t7(tp_top) * peat_w1 * self.enable_peattop  # Lappalainen et al 2018, gamma/VfAir slightly decomposed peat
+          k8 = 0.0001 * self.t7(tp_middle) * peat_w2 * self.enable_peatmiddle      # Lappalainen et al. 2018 gamma/VfAir highly decomposed
           k9 = 0.0001 *self.t7(tp_bottom) * peat_w3 *self.enable_peatbottom * 0.1 #0.25  #0.5
     
           # -> temperature separately for top peat 30 cm (take from 15 cm)
@@ -349,7 +357,7 @@ class Esom():
 
   def run_yr(self, weather, df_peat_temperatures, water_tables, nonwoodylitter, woodylitter):
     
-        ini_i = self.i                                                             # Day calculator, set the first day of the year
+        self.ini_i = self.i                                                             # Day calculator, set the first day of the year
         P1_ini = self.M[:,:, 7]*10000.                                             # top layer peat mass in the in the beginning of yr 
         P2_ini = self.M[:,:, 8]*10000.                                             # middle layer peat mass in the in the beginning of yr
         P3_ini = self.M[:,:, 9]*10000.                                             # bottom layer peat mass in the in the beginning of yr 
@@ -364,7 +372,10 @@ class Esom():
         air_ts = weather['T'].values                                               # Daily air temperatures, deg C
         tp_top_ts = df_peat_temperatures.iloc[:,2].values                          # Peat temperature -0.125 m depth
         tp_middle_ts = df_peat_temperatures.iloc[:,8].values                       # Peat temperature -0.4 m depth
-        tp_bottom_ts = df_peat_temperatures.iloc[:,15].values                      # Peat temperature -0.75 m depth
+        
+        tp_bottom_ts = df_peat_temperatures.iloc[:,9].values                      # Peat temperature -0.75 m depth
+        
+        #tp_bottom_ts = df_peat_temperatures.iloc[:,15].values                      # Peat temperature -0.75 m depth
         
         for n, (tair, tp_top, tp_middle, tp_bottom, wts) in enumerate(zip(air_ts, tp_top_ts, tp_middle_ts, tp_bottom_ts, water_tables.values)):    
             # Physical conditions in the peat profile
@@ -386,7 +397,7 @@ class Esom():
             self.M = self.decompose(k1,  k2, k3, k4, k5, k6, k7, k8, k9, self.M)
             self.mass[:,:,:,self.i] = self.M                                       # locate mass to output array  
             self.i +=1                                                             # day counter
-        end_i = self.i
+        self.end_i = self.i
         
     
         self.out = self.M[:,:, 10]*10000. - self.previous_mass
@@ -398,22 +409,50 @@ class Esom():
         self.out_below_root_lyr =  self.P2_out + self.P3_out
         
         #return self.out
-  
-  def compose_export(self, stp):
+        
+  def compose_export(self, stp, df_peat_temperatures):
         # To get total export, sum the left and right ditches 
-        docshare = 0.05
+        #UPDATE THESE
+        """
+        docshare = 0.009 #0.05
         lmwtohmwshare = 0.04
         mass_to_c = 0.5
-        hmw = (1-lmwtohmwshare)*self.out * 1/1.05 * docshare * mass_to_c  
-        lmw = self.out * 1/1.05 * docshare * mass_to_c * lmwtohmwshare  
+        
+        hmw = (1-lmwtohmwshare)*self.out * 1/(1+docshare)  * docshare * mass_to_c  
+        lmw = self.out * 1/(1+docshare) * docshare * mass_to_c * lmwtohmwshare  
+        
+        #Until here
         self.hmw = hmw 
         self.lmw = lmw
         self.hmwtoditch = hmw*np.exp(-0.0004*stp.residence_time)                    # biodegradation parameters from Kalbiz et al 2003
         self.lmwtoditch= lmw*np.exp(-0.15*stp.residence_time)
+        #print (hmw)
         self.hmw_to_west = len(np.ravel(stp.ixwest))/stp.n * np.mean(self.hmwtoditch[0, np.ravel(stp.ixwest)])
         self.hmw_to_east = len(np.ravel(stp.ixeast))/stp.n * np.mean(self.hmwtoditch[0, np.ravel(stp.ixeast)])
         self.lmw_to_west = len(np.ravel(stp.ixwest))/stp.n * np.mean(self.lmwtoditch[0, np.ravel(stp.ixwest)])
         self.lmw_to_east = len(np.ravel(stp.ixeast))/stp.n * np.mean(self.lmwtoditch[0, np.ravel(stp.ixeast)])
+        """
+        mass_to_c = 0.5
+        peat_T = df_peat_temperatures.iloc[:,2].values
         
+        doc = np.zeros((self.x,self.y))
+        for x in range(self.x):
+            for y in range(self.y):
+                doc[x,y] = np.sum(0.066*np.exp(-0.061*peat_T)*np.gradient(self.mass[x,y,10,self.ini_i:self.end_i]))*10000*mass_to_c
+              
+        lmwtohmwshare = 0.04
         
+        hmw = (1-lmwtohmwshare)*doc  
+        lmw =  lmwtohmwshare*doc  
+        
+        self.hmw = hmw  
+        self.lmw = lmw  
+        self.hmwtoditch = self.hmw*np.exp(-0.0004*stp.residence_time)                    # biodegradation parameters from Kalbiz et al 2003
+        self.lmwtoditch= self.lmw*np.exp(-0.15*stp.residence_time)
+        #print (hmw)
+        self.hmw_to_west = len(np.ravel(stp.ixwest))/stp.n * np.mean(self.hmwtoditch[0, np.ravel(stp.ixwest)])
+        self.hmw_to_east = len(np.ravel(stp.ixeast))/stp.n * np.mean(self.hmwtoditch[0, np.ravel(stp.ixeast)])
+        self.lmw_to_west = len(np.ravel(stp.ixwest))/stp.n * np.mean(self.lmwtoditch[0, np.ravel(stp.ixwest)])
+        self.lmw_to_east = len(np.ravel(stp.ixeast))/stp.n * np.mean(self.lmwtoditch[0, np.ravel(stp.ixeast)])
+       
         

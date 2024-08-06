@@ -15,19 +15,19 @@ Created on Tue Mar  1 19:52:35 2022
 import numpy as np
 import pandas as pd
 import datetime
-from susi_utils import  get_motti, read_FMI_weather, get_mese_input
-from susi_para import get_susi_para
-from susi_main import Susi
-import susi_io
+from susi.susi_utils import  get_motti, read_FMI_weather, get_mese_input
+from inputs.susi_para import get_susi_para
+from susi.susi_main import Susi
+import susi.susi_io
 
 #***************** local call for SUSI*****************************************************
 folderName=r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/susi_22_out/'
-#%%
-wpath = r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/ullika/'
+
+wpath = r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/ullikka/'
 wdata='katila_weather.csv'
 
 
-mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/ullika/',
+mottifile = {'path':r'C:/Users/alauren/OneDrive - University of Eastern Finland/Susi/ullikka/',
               'dominant':{1: 'ullika_1.xlsx', 2: 'ullika_2.xlsx', 3: 'ullika_3.xlsx' },
               'subdominant':{0:'susi_motti_input_lyr_1.xlsx'},
               'under':{0:'susi_motti_input_lyr_2.xlsx'}} 
@@ -39,7 +39,7 @@ start_yr = start_date.year
 end_yr = end_date.year
 yrs = (end_date - start_date).days/365.25
 
-sarkaSim = 100.                                                                  # strip width, ie distance between ditches, m
+sarkaSim = 80.                                                                  # strip width, ie distance between ditches, m
 n = int(sarkaSim / 2)                                                           # number of computation nodes in the strip
 
 ageSim = {'dominant': 120.*np.ones(n),
@@ -64,7 +64,6 @@ wpara, cpara, org_para, spara, outpara, photopara = get_susi_para(wlocation='und
                                                                           n=n)
 spara['canopylayers']['dominant'][int(n/3):int(n/3*2)] = 2
 spara['canopylayers']['dominant'][int(n/3*2):] = 3
-
 outpara['netcdf'] = 'ullika' + '.nc'
 
 susi = Susi() 

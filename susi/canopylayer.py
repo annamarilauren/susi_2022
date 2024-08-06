@@ -39,6 +39,7 @@ class Canopylayer():
         for ncanopy in nlyrs:                                                  # numner of different allometric files along the strip in this canopy layer
             if ncanopy > 0:                                                    # zero indicates no tree in the layer
                 self.sfc = int(np.median(self.sfc[self.ixs[ncanopy]]))         # site fertility class
+                
                 self.allodic[ncanopy] = Allometry()                            # allometry instance to the dictionary
                 mfile = mottipath + mottifile[ncanopy]                         # mottifile where the allometry tables exist
                 self.allodic[ncanopy].motti_development(mfile, self.sfc)       # run the allometry; interpolation functions in the instance
@@ -67,7 +68,7 @@ class Canopylayer():
         self.leafmass = np.zeros(ncols, dtype=float)                           # basic leaf mass kg/tree 
         self.logvolume = np.zeros(ncols, dtype=float)                          # volume of the saw logs m3/tree
         self.finerootlitter = np.zeros(ncols, dtype=float)                     # fineroot litter in the canopy layer kg/tree/yr
-        self.n_finerootlitter = -np.zeros(ncols, dtype=float)                  # N in fineroot litter in the canopy layer kg/treea/yr 
+        self.n_finerootlitter = np.zeros(ncols, dtype=float)                  # N in fineroot litter in the canopy layer kg/treea/yr 
         self.p_finerootlitter = np.zeros(ncols, dtype=float)                   # P in fineroot litter in the canopy layer kg/tree/yr      
         self.k_finerootlitter = np.zeros(ncols, dtype=float)                   # K in fineroot litter in the canopy layer kg/tree/yr  
         self.pulpvolume= np.zeros(ncols, dtype=float)                          # volume of pulpwood in the canopy layer m3/tree
@@ -97,6 +98,16 @@ class Canopylayer():
         self.n_woody_lresid = np.zeros(ncols, dtype=float)                     # N in woody logging residues kg/tree
         self.p_woody_lresid = np.zeros(ncols, dtype=float)                     # P in woody logging residues kg/tree
         self.k_woody_lresid = np.zeros(ncols, dtype=float)                     # K in woody logging residues kg/tree
+
+        self.woody_litter_mort = np.zeros(ncols, dtype=float)                  # woody litter from mortality kg/tree
+        self.n_woody_litter_mort = np.zeros(ncols, dtype=float)                # N in woody litter from mortality kg/tree
+        self.p_woody_litter_mort = np.zeros(ncols, dtype=float)                # P in woody litter from mortality kg/tree
+        self.k_woody_litter_mort = np.zeros(ncols, dtype=float)                # K in woody litter from mortality kg/tree
+
+        self.non_woody_litter_mort = np.zeros(ncols, dtype=float)              # non-woody litter from mortality kg/tree
+        self.n_non_woody_litter_mort = np.zeros(ncols, dtype=float)            # N in non-woody litter from mortality kg/tree
+        self.p_non_woody_litter_mort = np.zeros(ncols, dtype=float)            # P in non-woody litter from mortality kg/tree
+        self.k_non_woody_litter_mort = np.zeros(ncols, dtype=float)            # K in non-woody litter from mortality kg/tree
         
         #----------- ARRANGE Leaf dynamics variables-----------------
         self.new_lmass = np.zeros(ncols, dtype=float)                          # leaf mass after dynamics computation kg/ha
@@ -180,6 +191,21 @@ class Canopylayer():
                 self.n_woodylitter[ixs[m]] = self.allodic[m].allometry_f['bmToNWoodyLitter'](bm[ixs[m]]) 
                 self.p_woodylitter[ixs[m]] = self.allodic[m].allometry_f['bmToPWoodyLitter'](bm[ixs[m]]) 
                 self.k_woodylitter[ixs[m]] = self.allodic[m].allometry_f['bmToKWoodyLitter'](bm[ixs[m]]) 
+
+                self.woody_litter_mort[ixs[m]] = self.allodic[m].allometry_f['bmToMortalityWoody'](bm[ixs[m]])  
+                self.n_woody_litter_mort[ixs[m]] = self.allodic[m].allometry_f['bmToNMortalityWoody'](bm[ixs[m]])   
+                self.p_woody_litter_mort[ixs[m]] = self.allodic[m].allometry_f['bmToPMortalityWoody'](bm[ixs[m]])   
+                self.k_woody_litter_mort[ixs[m]] = self.allodic[m].allometry_f['bmToKMortalityWoody'](bm[ixs[m]])   
+                
+                self.non_woody_litter_mort[ixs[m]] = self.allodic[m].allometry_f['bmToMortalityFineRoot'](bm[ixs[m]]) 
+                +       self.allodic[m].allometry_f['bmToMortalityLeaves'](bm[ixs[m]])  
+                self.n_non_woody_litter_mort[ixs[m]] = self.allodic[m].allometry_f['bmToNMortalityFineRoot'](bm[ixs[m]]) 
+                +       self.allodic[m].allometry_f['bmToNMortalityLeaves'](bm[ixs[m]])  
+                self.p_non_woody_litter_mort[ixs[m]] = self.allodic[m].allometry_f['bmToPMortalityFineRoot'](bm[ixs[m]]) 
+                +       self.allodic[m].allometry_f['bmToPMortalityLeaves'](bm[ixs[m]])  
+                self.k_non_woody_litter_mort[ixs[m]] = self.allodic[m].allometry_f['bmToKMortalityFineRoot'](bm[ixs[m]]) 
+                +       self.allodic[m].allometry_f['bmToKMortalityLeaves'](bm[ixs[m]])   
+
                 self.yi[ixs[m]] = self.allodic[m].allometry_f['bmToYi'](bm[ixs[m]]) 
 
                 self.basNdemand[ixs[m]] = self.allodic[m].allometry_f['bmToNLeafDemand'](bm[ixs[m]])

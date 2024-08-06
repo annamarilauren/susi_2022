@@ -92,11 +92,11 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
         'nLyrs':50, 'dzLyr': 0.05, 'L': sarkaSim, 'n':n, 
 
 
-        'ditch depth west': [-0.3, -0.5, -0.7, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
-        'ditch depth east': [-0.3, -0.5, -0.7, -0.9],
-        'ditch depth 20y west': [-0.3, -0.5, -0.7, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'ditch depth 20y east': [-0.3, -0.5, -0.7, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'scenario name': ['Control', 'DNM50', 'DNM70', 'DNM90' ], #kasvunlisaykset
+        'ditch depth west': [-0.3, -0.6,  -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
+        'ditch depth east': [-0.3, -0.6,  -0.9],
+        'ditch depth 20y west': [-0.3, -0.6,  -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'ditch depth 20y east': [-0.3, -0.6,  -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'scenario name': ['D30', 'D60', 'D90' ],                                #kasvunlisaykset
 
         'initial h': -0.2, 'slope': 0.0, 
         'peat type':['A','A','A','A','A','A','A','A'], 
@@ -141,7 +141,7 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
         'vonP': True,
         'vonP top':  [2,2,2,3,4,5,6,6], 
         'vonP bottom': 8,
-        'bd top':None, 'bd bottom': 0.16,
+        'bd top':[0.12, 0.12, 0.12, 0.12, 0.12, 0.12, 0.12, 0.12], 'bd bottom': 0.16,
         'peatN':peatN, 'peatP':peatP, 'peatK':peatK,
         'enable_peattop': True, 'enable_peatmiddle': True,
         'enable_peatbottom': True,
@@ -164,15 +164,15 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
         'species': 'Spruce', 'sfc':sfc, 'sfc_specification': 1,
         'hdom':hdomSim, 'vol':volSim, 'age':ageSim, 'smc': 'Peatland',
         'nLyrs':30, 'dzLyr': 0.05, 'L': sarkaSim, 'n':n, 
-        'ditch depth west': [-0.3, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
-        'ditch depth east': [-0.3, -0.9],
-        'ditch depth 20y west': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'ditch depth 20y east': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'scenario name': ['Control', 'DNM90'], #kasvunlisaykset
+        'ditch depth west': [-0.3,-0.6, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
+        'ditch depth east': [-0.3, -0,6, -0.9],
+        'ditch depth 20y west': [-0.3, -0.6, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'ditch depth 20y east': [-0.3, -0.6, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'scenario name': ['D30', 'D60', 'D90'], #kasvunlisaykset
         'initial h': -0.2, 'slope': 3.0, 
         'peat type':['A','A','A','A','A','A','A','A'], 
-        'peat type bottom':['A'],'anisotropy':10.,
-        'vonP': True,
+        'peat type bottom':['A'],'anisotropy':50.,
+        'vonP': False,
         'vonP top':  [2,2,2,2,4,5,5,5], 
         'vonP bottom': 5,
         'bd top':None, 'bd bottom': 0.16,
@@ -198,15 +198,15 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
         'species': 'Pile', 'sfc':sfc, 'sfc_specification': 1,
         'hdom':hdomSim, 'vol':volSim, 'age':ageSim, 'smc': 'Peatland',
         'nLyrs':30, 'dzLyr': 0.05, 'L': sarkaSim, 'n':n, 
-        'ditch depth west': [-0.3, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
-        'ditch depth east': [-0.1, -0.9],
-        'ditch depth 20y west': [-0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'ditch depth 20y east': [-0.1, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
-        'scenario name': ['Control', 'DNM90'], #kasvunlisaykset
-        'initial h': -0.2, 'slope': 0.2, 
+        'ditch depth west': [-0.3, -0.6, -0.9],   #nLyrs kerrosten lkm, dzLyr kerroksen paksuus m, saran levys m, n laskentasolmulen lukumäärä, ditch depth pjan syvyys simuloinnin alussa m  
+        'ditch depth east': [-0.1, -0.3, -0.9],
+        'ditch depth 20y west': [-0.3, -0.6, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'ditch depth 20y east': [-0.1, -0.3, -0.9],                                            #ojan syvyys 20 vuotta simuloinnin aloituksesta
+        'scenario name': ['D30', 'D60','D90'], #kasvunlisaykset
+        'initial h': -0.2, 'slope': 0.5, 
         'peat type':['A','A','A','A','A','S','S','S'], 
         'peat type bottom':['S'],'anisotropy':10.,
-        'vonP': True,
+        'vonP': False,
         'vonP top':  [2,2,2,2,4,5,5,5], 
         'vonP bottom': 7,
         'bd top':None, 'bd bottom': 0.16,
@@ -232,6 +232,10 @@ def get_susi_para(wlocation=None, peat=None, photosite='All data', folderName=No
     outpara ={
         'outfolder':folderName, 
         'netcdf': 'susi.nc',
+        #'netcdf': 'susi_ba18.nc',
+        #'netcdf': 'susi_strip.nc',
+        #'netcdf': 'susi_cc.nc',
+        
         'startday': 1, 'startmonth':7, # Päivä, josta keskiarvojen laskenta alkaa
         'endday':31, 'endmonth':8, # Päivä, johon keskiarvojen laskenta loppuu
         #'figs': True, 'to_file':True, 'static stand':False, 'hydfig':True, 'DOCfig':False, 
