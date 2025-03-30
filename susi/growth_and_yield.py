@@ -446,7 +446,7 @@ class Growth_and_Yield_Table():
       
         return root.x
 
-
+"""
 G = 16.7                   # basal area, m2/ha
 N = 920                    # stem number, /ha
 Dg =  20.0                  # mean diameter, cm
@@ -501,3 +501,4 @@ dfpage2 = pd.DataFrame(data=dicpage2)
 
 dfpage2.to_excel(writer, sheet_name='Kertymät')
 writer.save()
+"""
